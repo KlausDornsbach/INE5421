@@ -165,27 +165,20 @@ def build_ST(re: str) -> Node:
 
                 # Get and remove the top element
                 # from the character stack
-                father = Node(cs[-1])
-                father_val = cs.pop()
+                father = Node(cs.pop())
 
                 # Get and remove the top element
-                # from the node stack
-                ## Treat unary operator case: single child (left)
-                if father_val == '*':
-                    right = None
-                else:
-                    right = ns[-1]
-                    ns.pop()
- 
-                # Get and remove the currently top
-                # element from the node stack
-                left = ns[-1]
-                ns.pop()
- 
+                # from the node stack;
                 # Update the tree
-                father.left = left
-                father.right = right
+
+                ## Treat unary operator case: single child (left)
+                if father.value == '*':
+                    father.right = None
+                else:
+                    father.right = ns.pop()
  
+                father.left = ns.pop()
+
                 # Push the node to the node stack
                 ns.append(father)
 
@@ -196,18 +189,17 @@ def build_ST(re: str) -> Node:
 
             while cs and cs[-1] != '(':
             
-                father = Node(cs[-1])
-                cs.pop()
-                right = ns[-1]
-                ns.pop()
-                left = ns[-1]
-                ns.pop()
-                father.left = left
-                father.right = right
+                father = Node(cs.pop())
+
+                if father.value == '*':
+                    father.right = None
+                else:
+                    father.right = ns.pop()
+
+                father.left = ns.pop()
                 ns.append(father)
             
             cs.pop()
-        
     
     father = ns[-1]
     return father
@@ -215,9 +207,9 @@ def build_ST(re: str) -> Node:
 
 # Teste
 def main():
-    # regexes testados (todos OK exceto onde comentado)
+    # regexes testados (agaora todos OK!)
     # regex = '(a | b)*abb'
-    regex = '(a | b) ? (a| b)?aa'
+    # regex = '(a | b) ? (a| b)?aa'
     # regex = 'a|b* a'
     # regex = 'a|b|c'
     # regex = 'a|b|(c|d)'
@@ -226,12 +218,10 @@ def main():
     # exemplos da verificaçao de apredizagem 09
     # regex = '(& | b)(ab)*(& | a)'
     # regex = 'a(a | b)* a'
+    regex = 'a a *(bb*aa*b)*'
 
     # miniteste 06
     # regex = '(a | b)? (a| b)* aa'
-
-    # NAO OK (em investigaçao)
-    # regex = 'a a *(bb*aa*b)*' 
 
     print('Input regex: ', regex, '\n')
 
