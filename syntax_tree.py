@@ -33,7 +33,7 @@ def parse_regex(re: str) -> str:
     """
 
     # regex
-    re += '#.'
+    re = '(' + re + ')#.'
     # parsed regex 
     pre = re[0]
 
@@ -215,22 +215,23 @@ def build_ST(re: str) -> Node:
 
 # Teste
 def main():
-    # regexes testados
-    # regex = '(a | b)*abb'         # ok!
-    # regex = '(a | b) ? (a| b)?aa' # ok!
-    
-    # regex = 'a|b* a'              # nao ok: aqui se perde no a|b* (ainda nao resolvido)
-    # regex = 'a|b|c'               # problema precedencia
-    # regex = 'a|b|(c|d)'           # problema precedencia
-    # regex = 'abba|cd'             # problema precedencia
-    
+    # regexes testados (todos OK exceto onde comentado)
+    # regex = '(a | b)*abb'
+    regex = '(a | b) ? (a| b)?aa'
+    # regex = 'a|b* a'
+    # regex = 'a|b|c'
+    # regex = 'a|b|(c|d)'
+    # regex = 'abba|cd'
+
     # exemplos da verificaçao de apredizagem 09
-    # regex = '(& | b)(ab)*(& | a)' # ok!
-    # regex = 'a(a | b)* a'         # ok! 
-    # regex = 'a a *(bb*aa*b)*'     # ok! 
+    # regex = '(& | b)(ab)*(& | a)'
+    # regex = 'a(a | b)* a'
 
     # miniteste 06
-    regex = '(a | b)? (a| b)* aa' # (?) parece ok
+    # regex = '(a | b)? (a| b)* aa'
+
+    # NAO OK (em investigaçao)
+    # regex = 'a a *(bb*aa*b)*' 
 
     print('Input regex: ', regex, '\n')
 
