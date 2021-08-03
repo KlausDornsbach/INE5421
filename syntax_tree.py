@@ -1,3 +1,4 @@
+
 from print_tree import print_tree
 
 ## por enquanto a arvore consiste apenas de nodos ligados
@@ -7,6 +8,7 @@ class Node:
         self.left = None
         self.right = None
         self.father = None
+        self.nullable = False
         self.last_pos = set()
         self.first_pos = set()
         self.follow_pos = set()
@@ -205,6 +207,83 @@ def build_ST(re: str) -> Node:
     return father
 
 
+def specify_nodes(as_root: Node) -> Node:
+    '''
+    gera valores nullable, firstpos e lastpos percorrendo
+    a ST em pós ordem: filho esquerda, filho direita, pai
+    :param as: arvore sintática gerada no passo anterior
+    :return: arvore modificada 
+    '''
+    stack = []
+    leaf_counter = 1
+
+    stack.append(as_root)
+
+    # 
+    while(stack):
+        curr_node = stack.pop()
+        # caso seja folha
+        if is_operand(curr_node.value):
+            if curr_node == '&':
+                curr_node.nullable = True
+            else:
+                curr_node.nullable = False
+                curr_node.last_pos.add(leaf_counter)
+                curr_node.first_pos.add(leaf_counter)
+                leaf_counter += 1
+
+        # caso seja operacao
+        else:
+            # checo se filhos já tem fpos definido 
+            # entao sei que posso definir lpos e fpos do
+            # nodo de operacao
+            if curr_node.left.first_pos != set():
+                # faz testes pra cada tipo de operacao
+                cn = curr_node
+                r = cn.right
+                l = cn.left
+                if cn.value == '|':
+                    cn.nullable = l.nullable or r.nullable
+                    cn.first_pos = l.first_pos | r.first_pos
+                    cn.last_pos = cn.first_pos
+                if cn.value == '*':
+                    cn.nullable = True
+                    cn.first_pos = l.first_pos
+                    cn.last_pos = cn.first_pos
+                if cn.value == '.':
+                    # print(f'lnull {l.nullable} lfirst {l.first_pos} llast {l.last_pos} rnull {r.nullable} rfirst {r.first_pos} rlast {r.last_pos}')
+                    cn.nullable = l.nullable and r.nullable
+                    if l.nullable:
+                        # print(f'cn first {l.first_pos | r.first_pos}')
+                        cn.first_pos = l.first_pos | r.first_pos
+                    else:
+                        # print(f'cn first {l.first_pos}')
+                        cn.first_pos = l.first_pos
+                    if r.nullable:
+                        # print(f'cn last {l.first_pos | r.first_pos}')
+                        cn.last_pos = l.first_pos | r.first_pos
+                    else:
+                        # print(f'cn last {r.first_pos}')
+                        cn.last_pos = r.first_pos
+
+            else:    
+                stack.append(curr_node)
+                if curr_node.right != None:
+                    stack.append(curr_node.right)
+                stack.append(curr_node.left)
+    
+    return as_root
+
+def print_recursively(root: Node):
+    if(root.left != None):
+        print_recursively(root.left)
+    if(root.right != None):
+        print_recursively(root.right)
+    print('########\n', root.value)
+    print(root.nullable)
+    print(root.first_pos)
+    print(root.last_pos)
+
 # Teste
 def main():
     # regexes testados (agaora todos OK!)
@@ -217,8 +296,8 @@ def main():
 
     # exemplos da verificaçao de apredizagem 09
     # regex = '(& | b)(ab)*(& | a)'
-    # regex = 'a(a | b)* a'
-    regex = 'a a *(bb*aa*b)*'
+    regex = 'a(a | b)* a'
+    # regex = 'a a *(bb*aa*b)*'
 
     # miniteste 06
     # regex = '(a | b)? (a| b)* aa'
@@ -230,6 +309,10 @@ def main():
 
     syntax_tree = build_ST(regex)
     print_tree(syntax_tree)
+    
+    # testando lpos,fpos...
+    syntax_tree = specify_nodes(syntax_tree)
+    print_recursively(syntax_tree) 
 
 if __name__ == '__main__':
     main()
