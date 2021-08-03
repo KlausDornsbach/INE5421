@@ -218,7 +218,11 @@ def main():
     # regexes testados
     # regex = '(a | b)*abb'         # ok!
     # regex = '(a | b) ? (a| b)?aa' # ok!
-    # regex = 'a|b* a'              # aqui se perde no a|b* (ainda nao resolvido)
+    
+    # regex = 'a|b* a'              # nao ok: aqui se perde no a|b* (ainda nao resolvido)
+    # regex = 'a|b|c'               # problema precedencia
+    # regex = 'a|b|(c|d)'           # problema precedencia
+    # regex = 'abba|cd'             # problema precedencia
     
     # exemplos da verificaçao de apredizagem 09
     # regex = '(& | b)(ab)*(& | a)' # ok!
