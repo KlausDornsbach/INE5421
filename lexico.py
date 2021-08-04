@@ -1,7 +1,7 @@
 # definimos classe de automatos, podem ser
 # deterministicos ou não, epsilon transicoes
 # sao representadas como &
-class Automata():
+class Automaton():
     # um automato possui um dicionario de
     # simbolos (alfabeto), lista de estados, cada
     # estado representado por uma string, 
@@ -42,7 +42,7 @@ class SyntaxTree():
         # cria arvore
         # descobre nullable, lastpos, nextpos e followpos
         # cria automato
-        # self.automata = Automata()
+        # self.automaton = Automaton()
         pass
     # usado na definicao de tokens, ex.:
     # token -> id : letter(letter|digit)*
@@ -81,7 +81,7 @@ class Lexico():
         pass
 
     # determinizacao de automato
-    def det_automata():
+    def det_automaton():
         pass
 
     # ler um texto e dar output em uma lista:

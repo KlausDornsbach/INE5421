@@ -1,5 +1,6 @@
 
 from print_tree import print_tree
+import automaton
 
 ## por enquanto a arvore consiste apenas de nodos ligados
 class Node:
@@ -207,18 +208,23 @@ def build_ST(re: str) -> Node:
     return father
 
 
-def specify_nodes(as_root: Node) -> Node:
+def specify_nodes(as_root: Node) -> (Node, list):
     '''
-    gera valores nullable, firstpos e lastpos percorrendo
-    a ST em pós ordem: filho esquerda, filho direita, pai
+    gera valores nullable, firstpos, lastpos e followpos
+    percorrendo a ST em pós ordem: filho esquerda, filho 
+    direita e pai. 
     :param as: arvore sintática gerada no passo anterior
-    :return: arvore modificada 
+    :return Node: arvore modificada
+    :return list: lista de folhas
     '''
     stack = []
-    leaf_counter = 1
+    leaf_counter = 0
 
     stack.append(as_root)
 
+    # essa lista serve pra armazenar nodos folha
+    # é usada na definicao de followpos
+    leaf_list = []
     # 
     while(stack):
         curr_node = stack.pop()
@@ -231,6 +237,7 @@ def specify_nodes(as_root: Node) -> Node:
                 curr_node.last_pos.add(leaf_counter)
                 curr_node.first_pos.add(leaf_counter)
                 leaf_counter += 1
+                leaf_list.append(curr_node)
 
         # caso seja operacao
         else:
@@ -246,10 +253,15 @@ def specify_nodes(as_root: Node) -> Node:
                     cn.nullable = l.nullable or r.nullable
                     cn.first_pos = l.first_pos | r.first_pos
                     cn.last_pos = cn.first_pos
+
                 if cn.value == '*':
                     cn.nullable = True
                     cn.first_pos = l.first_pos
                     cn.last_pos = cn.first_pos
+                for i in cn.first_pos:                      # followpos
+                    for j in cn.last_pos:
+                        leaf_list[i].follow_pos.add(j)
+                    
                 if cn.value == '.':
                     # print(f'lnull {l.nullable} lfirst {l.first_pos} llast {l.last_pos} rnull {r.nullable} rfirst {r.first_pos} rlast {r.last_pos}')
                     cn.nullable = l.nullable and r.nullable
@@ -265,14 +277,18 @@ def specify_nodes(as_root: Node) -> Node:
                     else:
                         # print(f'cn last {r.first_pos}')
                         cn.last_pos = r.first_pos
+                    for r_node_index in r.first_pos:        # followpos
+                        for l_node_index in l.last_pos:
+                            leaf_list[l_node_index].follow_pos.add(r_node_index)
 
-            else:    
+            else:
                 stack.append(curr_node)
                 if curr_node.right != None:
                     stack.append(curr_node.right)
                 stack.append(curr_node.left)
     
-    return as_root
+    return (as_root, leaf_list)
+
 
 def print_recursively(root: Node):
     if(root.left != None):
@@ -280,6 +296,7 @@ def print_recursively(root: Node):
     if(root.right != None):
         print_recursively(root.right)
     print('########\n', root.value)
+    # print(root.follow_pos)
     print(root.nullable)
     print(root.first_pos)
     print(root.last_pos)
@@ -287,7 +304,7 @@ def print_recursively(root: Node):
 # Teste
 def main():
     # regexes testados (agaora todos OK!)
-    # regex = '(a | b)*abb'
+    regex = '(a | b)*abb'
     # regex = '(a | b) ? (a| b)?aa'
     # regex = 'a|b* a'
     # regex = 'a|b|c'
@@ -296,7 +313,7 @@ def main():
 
     # exemplos da verificaçao de apredizagem 09
     # regex = '(& | b)(ab)*(& | a)'
-    regex = 'a(a | b)* a'
+    # regex = 'a(a | b)* a'
     # regex = 'a a *(bb*aa*b)*'
 
     # miniteste 06
@@ -311,8 +328,15 @@ def main():
     print_tree(syntax_tree)
     
     # testando lpos,fpos...
-    syntax_tree = specify_nodes(syntax_tree)
-    print_recursively(syntax_tree) 
+    (syntax_tree, leaf_list) = specify_nodes(syntax_tree)
+    # print_recursively(syntax_tree[0])
+    # testando followpos
+    # for i in leaf_list:
+    #     print(i.value)
+    #     print(i.follow_pos) 
+
+    # testando automato
+    auto = automaton.Automaton(syntax_tree, leaf_list)
 
 if __name__ == '__main__':
     main()
