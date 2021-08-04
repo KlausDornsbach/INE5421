@@ -252,12 +252,12 @@ def specify_nodes(as_root: Node) -> (Node, list):
                 if cn.value == '|':
                     cn.nullable = l.nullable or r.nullable
                     cn.first_pos = l.first_pos | r.first_pos
-                    cn.last_pos = cn.first_pos
+                    cn.last_pos = l.last_pos | r.last_pos
 
                 if cn.value == '*':
                     cn.nullable = True
                     cn.first_pos = l.first_pos
-                    cn.last_pos = cn.first_pos
+                    cn.last_pos = l.last_pos
                 for i in cn.first_pos:                      # followpos
                     for j in cn.last_pos:
                         leaf_list[i].follow_pos.add(j)
@@ -273,10 +273,10 @@ def specify_nodes(as_root: Node) -> (Node, list):
                         cn.first_pos = l.first_pos
                     if r.nullable:
                         # print(f'cn last {l.first_pos | r.first_pos}')
-                        cn.last_pos = l.first_pos | r.first_pos
+                        cn.last_pos = l.last_pos | r.last_pos
                     else:
                         # print(f'cn last {r.first_pos}')
-                        cn.last_pos = r.first_pos
+                        cn.last_pos = r.last_pos
                     for r_node_index in r.first_pos:        # followpos
                         for l_node_index in l.last_pos:
                             leaf_list[l_node_index].follow_pos.add(r_node_index)
@@ -329,7 +329,8 @@ def main():
     
     # testando lpos,fpos...
     (syntax_tree, leaf_list) = specify_nodes(syntax_tree)
-    # print_recursively(syntax_tree[0])
+    print_recursively(syntax_tree)
+    print('----------------------------')
     # testando followpos
     # for i in leaf_list:
     #     print(i.value)
