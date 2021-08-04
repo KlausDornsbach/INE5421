@@ -46,10 +46,7 @@ class Automaton():
         s = initial_D
         while s.marked == False:
             s.marked = True
-            
-            # for g in d_states:
-                # print('once again: ')
-                # print(f'from state {g.state}, transitions: {g.transitions}')
+    
             for a in alphabet:
                 s.transitions[a] = set()
                 u = set()
@@ -65,13 +62,17 @@ class Automaton():
                     # s = new_state
                 
                 s.transitions[a] = s.transitions[a] | u
-                print(s)
-                # print(f'from state {s.state}, transitions: {s.transitions}')
+                # print(s)
+                # dentro do escopo printa certo
+                
+            print('###########\ndentro do escopo printa certo')
+            print(f'from state {s.state}, transitions: {s.transitions}')
             # print(d_states)
             s = self.find_unmarked(d_states)
 
         # print(d_states)
-        
+        # fora do escopo errado
+        print('###########\nfora do escopo printa errado')
         for g in d_states:
             print(f'from state {g.state}, transitions: {g.transitions}')
 
