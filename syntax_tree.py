@@ -263,19 +263,14 @@ def specify_nodes(as_root: Node) -> (Node, list):
                         leaf_list[i].follow_pos.add(j)
                     
                 if cn.value == '.':
-                    # print(f'lnull {l.nullable} lfirst {l.first_pos} llast {l.last_pos} rnull {r.nullable} rfirst {r.first_pos} rlast {r.last_pos}')
                     cn.nullable = l.nullable and r.nullable
                     if l.nullable:
-                        # print(f'cn first {l.first_pos | r.first_pos}')
                         cn.first_pos = l.first_pos | r.first_pos
                     else:
-                        # print(f'cn first {l.first_pos}')
                         cn.first_pos = l.first_pos
                     if r.nullable:
-                        # print(f'cn last {l.first_pos | r.first_pos}')
                         cn.last_pos = l.last_pos | r.last_pos
                     else:
-                        # print(f'cn last {r.first_pos}')
                         cn.last_pos = r.last_pos
                     for r_node_index in r.first_pos:        # followpos
                         for l_node_index in l.last_pos:
@@ -327,16 +322,18 @@ def main():
     syntax_tree = build_ST(regex)
     print_tree(syntax_tree)
     
-    # testando lpos,fpos...
+    # buildo nullable, lpos, fpos, followpos
     (syntax_tree, leaf_list) = specify_nodes(syntax_tree)
-    print_recursively(syntax_tree)
-    print('----------------------------')
+    
+    # VALIDACAO, se quiser ver, uncomment
+    # print_recursively(syntax_tree)
+    # print('----------------------------')
     # testando followpos
     # for i in leaf_list:
     #     print(i.value)
     #     print(i.follow_pos) 
 
-    # testando automato
+    # buildo automato
     auto = automaton.Automaton(syntax_tree, leaf_list)
 
 if __name__ == '__main__':
