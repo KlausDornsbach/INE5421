@@ -1,3 +1,5 @@
+from pprint import pprint  # para printar os atributos
+
 # definimos classe de automatos, podem ser
 # deterministicos ou não, epsilon transicoes
 # sao representadas como &
@@ -76,11 +78,57 @@ class Lexico():
     def regex_to_afd(self, file):
         pass
 
-    # uniao de afd's
-    # recebe uma quantidade arbitraria de afd's como parametro
+    # renomeia estados de um afd
+    # com numeros comecando por "i"
+    # em todas as estruturas e atributos,
+    # util para legibilidade e para
+    # evitar colisoes durante a uniao
+    def rename_states(self, afd, i=0):
+        new_names = range(i,i+len(afd.states))
+        # checa se a renomeacao eh necessaria
+        if afd.states == set(new_names): return
+        # relaciona cada estado com seus novos nomes
+        names = dict(zip(sorted(afd.states),new_names))
+        # atualiza o conjunto de estados
+        afd.states = set(new_names)
+        # renomeia o estado inicial
+        afd.init_state = names.get(afd.init_state)
+        # renomeia os estados finais
+        afd.final_states = {names.get(fs) for fs in afd.final_states}
+        # renomeia os estados nas transicoes
+        new_trans = {}
+        for (s,a),t in afd.transitions.items():
+            new_trans[(names.get(s),a)] = names.get(t) if isinstance(t,frozenset) else {names.get(u) for u in t}
+        afd.transitions = new_trans
+
+    # uniao de afds
+    # recebe uma quantidade arbitraria de afds
+    # e retorna afnd equivalente a uniao deles
     def afd_union(self, *afds):
+        n_init = 0  # novo estado inicial
+        n_states = {n_init}  # novos estados
+        n_final = set()  # novos estados finais
+        n_trans = {(0,'&'): set()}  # novas transicoes
+        n_alphabet = set()  # novo alfabeto
+
+        i = 1
         for afd in afds:
-            pass
+            # renomeia os estados de modo a evitar
+            # que haja colisoes entre os nomes
+            # dos estados dos diferentes afds
+            self.rename_states(afd, i)
+            i += len(afd.states)
+            # atualiza as estruturas do novo automato
+            # com as aquelas de cada um dos afds
+            n_states.update(afd.states)
+            n_final.update(afd.final_states)
+            n_trans.update(afd.transitions)
+            n_alphabet.update(afd.alphabet)
+            # insere a epsilon transicao partindo do novo
+            # estado inicial para os antigos estados iniciais
+            n_trans[(0,'&')].add(afd.init_state)
+
+        return Automaton(n_alphabet, n_states, n_init, n_trans, n_final)
 
     # determinizacao de afnd (algoritmo 3.2 no livro do Aho)
     # recebe afnd e retorna afd equivalente
@@ -117,8 +165,9 @@ class Lexico():
                     mov.update(u)
             return mov
 
-        init_state = epsilon_closure(afnd.init_state)  # novo estado inicial
-        d_states = {init_state}  # novos estados
+        d_init = epsilon_closure(afnd.init_state)  # novo estado inicial
+        d_states = {d_init}  # novos estados
+        d_final = set()  # novos estados finais
         d_trans = dict()  # novas transicoes
 
         # computa todos os novos estados e transicoes
@@ -132,14 +181,17 @@ class Lexico():
                 d_trans[(T,a)] = u
         
         # computa os novos estados finais
-        final_states = set()
         for s in afnd.final_states:
             for t in d_states:
                 if s in t:
-                    final_states.add(t)
+                    d_final.add(t)
 
-        return Automaton(afnd.alphabet, d_states, init_state, d_trans, final_states)
-
+        # afd obtido apos a determinizacao
+        afd = Automaton(afnd.alphabet, d_states, d_init, d_trans, d_final)
+        # renomeia os estados para melhor legibilidade
+        self.rename_states(afd)
+        return afd
+    
     # ler um texto e dar output em uma lista:
     # padrao, lexema, indice no arquivo
     def create_symbol_table(self, file):
@@ -168,29 +220,71 @@ def main():
     lex = Lexico()
     letter_ = lex.parse_regular_definition('letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z_]')
 
+    # teste de uniao com os afds da figura 3.35 no livro do Aho
+    alphabet = {'a','b'}
+    states = {1, 2}
+    init_state = 1
+    transitions = {(1,'a'): {2}}
+    final_states = {2}
+    afd1 = Automaton(alphabet, states, init_state, transitions, final_states)
+
+    states = {3, 4, 5, 6}
+    init_state = 3
+    transitions = {
+        (3,'a'): {4},
+        (4,'b'): {5},
+        (5,'b'): {6}
+    }
+    final_states = {6}
+    afd2 = Automaton(alphabet, states, init_state, transitions, final_states)
+
+    states = {7, 8}
+    init_state = 7
+    transitions = {
+        (7,'a'): {7},
+        (7,'b'): {8},
+        (8,'b'): {8}
+    }
+    final_states = {8}
+    afd3 = Automaton(alphabet, states, init_state, transitions, final_states)
+
+    # faz a uniao e printa os atributos do afnd resultante
+    afnd_uniao = lex.afd_union(afd1, afd2, afd3)
+    print('União dos AFDs antes da determinização:\n')
+    pprint(afnd_uniao.__dict__)
+
+    print('\n===================================================\n')
+
+    # determiniza o afnd resultante da uniao e printa seus atributos
+    afd_uniao = lex.det_automaton(afnd_uniao)
+    print('União dos AFDs após determinização:\n')
+    pprint(afd_uniao.__dict__)
+
+    # print('\n===================================================\n')
+
     # teste de determinizacao com o afnd
     # da figura 3.27 no livro do Aho
-    alphabet = {'a','b'}
-    states = set(range(11))
-    init_state = 0
-    transitions = {
-        (0,'&'): {1,7},
-        (1,'&'): {2,4},
-        (2,'a'): {3},
-        (3,'&'): {6},
-        (4,'b'): {5},
-        (5,'&'): {6},
-        (6,'&'): {1,7},
-        (7,'a'): {8},
-        (8,'b'): {9},
-        (9,'b'): {10},
-    }
-    final_states = {10}
-    afnd = Automaton(alphabet, states, init_state, transitions, final_states)
+    # alphabet = {'a','b'}
+    # states = set(range(11))
+    # init_state = 0
+    # transitions = {
+    #     (0,'&'): {1,7},
+    #     (1,'&'): {2,4},
+    #     (2,'a'): {3},
+    #     (3,'&'): {6},
+    #     (4,'b'): {5},
+    #     (5,'&'): {6},
+    #     (6,'&'): {1,7},
+    #     (7,'a'): {8},
+    #     (8,'b'): {9},
+    #     (9,'b'): {10},
+    # }
+    # final_states = {10}
+    # afnd = Automaton(alphabet, states, init_state, transitions, final_states)
     
-    # determiniza o afnd e printa os atributos do afd
-    afd = lex.det_automaton(afnd)
-    __import__('pprint').pprint(afd.__dict__)
+    # determiniza o afnd e printa os atributos do afd resultante
+    # afd = lex.det_automaton(afnd)
+    # pprint(afd.__dict__)
     
 
 if __name__ == '__main__':
