@@ -19,6 +19,18 @@ class Automaton():
         self.init_state = init_state
         self.final_states = final_states
     
+    # simula a execucao de um afd sobre uma dada palavra e
+    # determina se a palavra foi reconhecida pelo automato
+    # obs.: nao serve para simular um afnd, e portanto
+    # deve-se determinizar primeiro
+    def run(self, word):
+        current_state = self.init_state
+        for c in word:
+            next_state = self.transitions.get((current_state,c))
+            if next_state is None: return False
+            current_state = next_state
+        return current_state in self.final_states
+    
     def read_file():
         pass
 
@@ -260,6 +272,11 @@ def main():
     print('União dos AFDs após determinização:\n')
     pprint(afd_uniao.__dict__)
 
+    print('\nTeste da execução sobre algumas palavras...')
+    words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
+    for word in words:
+        print(f'run({word}) = {afd_uniao.run(word)}')
+    
     # print('\n===================================================\n')
 
     # teste de determinizacao com o afnd
