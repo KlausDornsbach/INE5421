@@ -10,7 +10,7 @@ class Automaton():
     # tuplas de estado + simbolo para 
     # um estado: transicao[(q1, a)] = q3
     # q1, q3 \in states, a \in alphabet
-    def __init__(self, alphabet={}, states=[], init_state=None, transitions={}, final_states=[]):
+    def __init__(self, alphabet=set(), states=set(), init_state=None, transitions={}, final_states=set()):
         self.alphabet = alphabet
         self.states = states
         self.transitions = transitions
@@ -76,13 +76,69 @@ class Lexico():
     def regex_to_afd(self, file):
         pass
 
-    # juntar afd's 
-    def afd_union(self, afd):
-        pass
+    # uniao de afd's
+    # recebe uma quantidade arbitraria de afd's como parametro
+    def afd_union(self, *afds):
+        for afd in afds:
+            pass
 
-    # determinizacao de automato
-    def det_automaton():
-        pass
+    # determinizacao de afnd (algoritmo 3.2 no livro do Aho)
+    # recebe afnd e retorna afd equivalente
+    def det_automaton(self, afnd):
+        # computa o epsilon fecho
+        def epsilon_closure(T):
+            if isinstance(T, int):  # fechamento-&(s)
+                stack = [T]
+                eps_closure = {T}
+            else:  # fechamento-&(T)
+                stack = list(T)
+                eps_closure = T
+            while stack:
+                t = stack.pop()  # desempilha um estado t
+                # itera pelos estados u alcancaveis por t atraves de &
+                for u in afnd.transitions.get((t,'&'), {}):
+                    if u not in eps_closure:
+                        eps_closure.add(u)
+                        stack.append(u)
+            # retorna um frozenset (conjunto imutavel)
+            # possibilita ser adicionado a outros sets
+            return frozenset(eps_closure)
+
+        # computa o conjunto de estados do afnd que
+        # possuem transicoes partindo de estados de
+        # T pelo simbolo a e chegando a si
+        def movement(T, a):
+            mov = set()
+            if isinstance(T, int):
+                T = {T}
+            for t in T:
+                u = afnd.transitions.get((t,a), {})
+                if u:  # se a transicao existir
+                    mov.update(u)
+            return mov
+
+        init_state = epsilon_closure(afnd.init_state)  # novo estado inicial
+        d_states = {init_state}  # novos estados
+        d_trans = dict()  # novas transicoes
+
+        # computa todos os novos estados e transicoes
+        marked = set()  # conjunto de estados marcados
+        while marked != d_states:  # se houver estados nao marcados
+            T = (d_states-marked).pop()  # pega um estado nao marcado
+            marked.add(T)  # marca o estado
+            for a in afnd.alphabet:
+                u = epsilon_closure(movement(T,a))
+                d_states.add(u)
+                d_trans[(T,a)] = u
+        
+        # computa os novos estados finais
+        final_states = set()
+        for s in afnd.final_states:
+            for t in d_states:
+                if s in t:
+                    final_states.add(t)
+
+        return Automaton(afnd.alphabet, d_states, init_state, d_trans, final_states)
 
     # ler um texto e dar output em uma lista:
     # padrao, lexema, indice no arquivo
@@ -112,6 +168,30 @@ def main():
     lex = Lexico()
     letter_ = lex.parse_regular_definition('letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z_]')
 
+    # teste de determinizacao com o afnd
+    # da figura 3.27 no livro do Aho
+    alphabet = {'a','b'}
+    states = set(range(11))
+    init_state = 0
+    transitions = {
+        (0,'&'): {1,7},
+        (1,'&'): {2,4},
+        (2,'a'): {3},
+        (3,'&'): {6},
+        (4,'b'): {5},
+        (5,'&'): {6},
+        (6,'&'): {1,7},
+        (7,'a'): {8},
+        (8,'b'): {9},
+        (9,'b'): {10},
+    }
+    final_states = {10}
+    afnd = Automaton(alphabet, states, init_state, transitions, final_states)
+    
+    # determiniza o afnd e printa os atributos do afd
+    afd = lex.det_automaton(afnd)
+    __import__('pprint').pprint(afd.__dict__)
+    
 
 if __name__ == '__main__':
     main()
