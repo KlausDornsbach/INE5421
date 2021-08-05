@@ -120,7 +120,7 @@ class Lexico():
         n_init = 0  # novo estado inicial
         n_states = {n_init}  # novos estados
         n_final = set()  # novos estados finais
-        n_trans = {(0,'&'): set()}  # novas transicoes
+        n_trans = {(n_init,'&'): set()}  # novas transicoes
         n_alphabet = set()  # novo alfabeto
 
         i = 1
@@ -138,7 +138,7 @@ class Lexico():
             n_alphabet.update(afd.alphabet)
             # insere a epsilon transicao partindo do novo
             # estado inicial para os antigos estados iniciais
-            n_trans[(0,'&')].add(afd.init_state)
+            n_trans[(n_init,'&')].add(afd.init_state)
 
         return Automaton(n_alphabet, n_states, n_init, n_trans, n_final)
 
