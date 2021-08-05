@@ -193,10 +193,9 @@ class Lexico():
                 d_trans[(T,a)] = u
         
         # computa os novos estados finais
-        for s in afnd.final_states:
-            for t in d_states:
-                if s in t:
-                    d_final.add(t)
+        for s in d_states:
+            if s & afnd.final_states:
+                d_final.add(s)
 
         # afd obtido apos a determinizacao
         afd = Automaton(afnd.alphabet, d_states, d_init, d_trans, d_final)
