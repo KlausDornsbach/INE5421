@@ -96,21 +96,38 @@ class Lexico():
     # util para legibilidade e para
     # evitar colisoes durante a uniao
     def rename_states(self, afd, i=0):
+        # determina novos nomes dos estados
+        # e checa se a renomeacao eh necessaria
         new_names = range(i,i+len(afd.states))
-        # checa se a renomeacao eh necessaria
-        if afd.states == set(new_names): return
-        # relaciona cada estado com seus novos nomes
-        names = dict(zip(sorted(afd.states),new_names))
-        # atualiza o conjunto de estados
-        afd.states = set(new_names)
-        # renomeia o estado inicial
+        set_new_names = set(new_names)
+        if afd.states == set_new_names: return
+
+        # varre os estados do automato por niveis (BFS)
+        # partindo do estado inicial e armazena
+        # os novos nomes para cada estado
+        names = {afd.init_state: i}
+        i += 1
+        queue = deque([afd.init_state])
+        while queue:
+            s = queue.popleft()
+            for a in afd.alphabet:
+                x = afd.transitions.get((s,a), {})
+                if isinstance(x,frozenset):
+                    x = {x}
+                for t in x:
+                    if t not in names:
+                        names[t] = i
+                        i += 1
+                        queue.append(t)
+
+        # renomeia os estados em todas as estruturas do afd
+        afd.states = set_new_names
         afd.init_state = names.get(afd.init_state)
-        # renomeia os estados finais
         afd.final_states = {names.get(fs) for fs in afd.final_states}
-        # renomeia os estados nas transicoes
         new_trans = {}
         for (s,a),t in afd.transitions.items():
-            new_trans[(names.get(s),a)] = names.get(t) if isinstance(t,frozenset) else {names.get(u) for u in t}
+            new_trans[(names.get(s),a)] = names.get(t) if isinstance(t,frozenset) \
+                                    else {names.get(u) for u in t}
         afd.transitions = new_trans
 
     # uniao de afds
