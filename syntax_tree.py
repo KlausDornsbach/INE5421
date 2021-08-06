@@ -20,7 +20,7 @@ def is_operand(c: str, alphabet=None) -> bool:
 	return c.isalnum() or c in {'#', '&'}
 
 def is_operator(c: str) -> bool:
-	return c in {'*', '|', '.', '?'}
+	return c in {'*', '|', '.', '?', '+'}
 
 def parse_regex(re: str) -> str:
     """
@@ -28,9 +28,8 @@ def parse_regex(re: str) -> str:
     Obs: não leva em consideração erros
     Obs2: considera-se que operandos em sequencia representam uma
          concatenação implícita. Exemplo 'abb' = 'a.b.b'
-    Obs3: caso encontre operador '?' substitui por '| &' 
-        incluindo na expressão os parenteses que respeitem
-        as precedencias anteriores
+    Obs3: caso encontre operador '(...)?' substitui por '((...)|&)' 
+    Obs4: caso encontre operador '(...)+' substitui por '(...).(...)*' 
     :param re: expressão regular qualquer (input)
     :return: expressão regular 'parseada'
     """
@@ -40,7 +39,7 @@ def parse_regex(re: str) -> str:
     # parsed regex 
     pre = re[0]
 
-    # primeiro simbolo não é analisado
+    # ^ primeiro simbolo não é analisado
     # (supõe-se que a regex é valida)
     """
     obs: a lógica aqui é basicamente tomar as decisões com base
@@ -50,23 +49,38 @@ def parse_regex(re: str) -> str:
     for i in range(1, len(re)):
 
         # adiciona operador concat explicito na regex
-        # cobre os casos:  
+        # cobre casos como:  
         #   ')(' -> ') . (' 
         #   'aaa' -> 'a . a . a'
         #   'a*b' -> 'a* . b'
         if (is_operand(re[i]) or re[i] == '(') and (is_operand(pre[-1]) or pre[-1] in {'*', ')'} ):
             pre += '.' + re[i]
 
-        # copiar diretamente (exceto para '?')
+        # copiar diretamente (exceto para '?' e '+')
         elif re[i] in {'(', ')'} or is_operator(re[i]) or is_operand(re[i]):
             
-            # substituir operador '?' por ' ( _subexpressão_ |&) . '
+            if re[i] not in {'?', '+'}:
+                pre += re[i]
+                continue
+
+            # substituir operador '?' por '(_subexp_|&).(...)'
+            # ou '+' por (_subexp_).(_subexp_)*
             # obs: a inclusão dos parenteses é necessaria para
             #   garantir a formação da arvore de forma correta
             #   a partir do algoritmo utilizado para a arvore
-            if re[i] == '?':
-                
-                # ajustar precedencia da operação |& com parenteses já existentes
+
+            # o primeiro caso é facil: se for um operando, 
+            # basta adicionar um ( antes do mesmo.
+            if is_operand(pre[-1]):
+                if re[i] == '?':
+                    pre = pre[:-1] + '(' + pre[-1] + '|&).'
+                elif re[i] == '+':
+                    pre += '.' + pre[-1] + '*'
+            
+            # segundo caso: quando o simbolo anterior
+            # é um ), que é mais delicado por que deve-se
+            # considerar tudo que tiver dentro dos ()'s
+            else:
                 j = len(pre) - 1
                 # buffer para restaurar a regex
                 buf = ''
@@ -75,51 +89,36 @@ def parse_regex(re: str) -> str:
                 
                 # a leitura da expressao obtida até então em 'pre' é feita 
                 # de trás para frente, para poder identificar as aberturas
-                # e fechamentos dos parenteses na expressão (se existirem)
+                # e fechamentos dos parenteses na expressão
                 while j > -1:
+                    buf = pre[j] + buf
 
-                    if not is_operand(pre[j]) or parenteses:
-                        buf = pre[j] + buf
+                    # contagem de parenteses existentes
+                    if pre[j] == ')':
+                        parenteses += 1
+                    elif pre[j] == '(':
+                        parenteses -= 1
+                        # se fechar todos parenteses encontrados
+                        # então foi encontrada a posição para abrir
+                        # o novo '('
+                        if parenteses == 0:
+                            j = -1
+                            break
+                    
+                    j -= 1
 
-                        # contagem de parenteses existentes
-                        if pre[j] == ')':
-                            parenteses += 1
-                        elif pre[j] == '(':
-                            parenteses -= 1
+                # se nao pegou toda a expressao em 'buf',
+                # restaura a parte anterior ao que tiver em 'buf'
+                if len(pre) > len(buf):
+                    pre = pre[:(len(pre) - len(buf))] + '(' + buf
+                else:
+                    pre = '(' + buf
 
-                            # se fechar todos parenteses encontrados
-                            # então foi encontrada a posição para abrir
-                            # o novo '('
-                            if parenteses == 0:
-                                j = -1
-                                break
-                        
-                        j -= 1
-
-                    # caso em que encontra uma posição para 
-                    # abrir o parenteses, e não se encontrou
-                    # nenhum ()'s no caminho
-                    else:
-                        pre = pre[0 : j-1] + '(' + buf
-                        break
-
-                # indica que foram encontrados parenteses teve que ser 
-                # e haviam outros parenteses no meio
-                if j == -1:
-
-                    # se nao pegou toda a expressao em 'buf',
-                    # restaura a parte anterior ao que tiver em 'buf'
-                    if len(pre) > len(buf):
-                        pre = pre[:(len(pre) - len(buf))] + '(' + buf
-                    else:
-                        pre = '(' + buf
-
-                pre += '|&).'
-                # aqui termina o tratamento da substituição de '?'
-
-            # caso re[i] válido e != '?'  
-            else:
-                pre += re[i]
+                if re[i] == '?':
+                    pre += '|&).'
+                else:
+                    pre = pre[1:] + '.' + buf + '*'
+                # aqui termina o tratamento da substituição de '?' ou '+'
 
         # caso re[i] inválido. ignorar caractere.
         # exemplo: espaços em branco
@@ -258,8 +257,8 @@ def specify_nodes(as_root: Node) -> (Node, list):
                     cn.nullable = True
                     cn.first_pos = l.first_pos
                     cn.last_pos = l.last_pos
-                for i in cn.first_pos:                      # followpos
-                    for j in cn.last_pos:
+                for i in cn.last_pos:                      # followpos
+                    for j in cn.first_pos:
                         leaf_list[i].follow_pos.add(j)
                     
                 if cn.value == '.':
@@ -328,10 +327,10 @@ def main():
     # VALIDACAO, se quiser ver, uncomment
     # print_recursively(syntax_tree)
     # print('----------------------------')
-    # testando followpos
+    # # testando followpos
     # for i in leaf_list:
-    #     print(i.value)
-    #     print(i.follow_pos) 
+    #     print('node:', i.value, i.first_pos)
+    #     print('follow_pos:', i.follow_pos) 
 
     # buildo automato
     auto = automaton.Automaton(syntax_tree, leaf_list)
