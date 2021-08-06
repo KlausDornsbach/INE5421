@@ -313,6 +313,11 @@ def main():
     # miniteste 06
     # regex = '(a | b)? (a| b)* aa'
 
+    # exemplo aho figura 3.35
+    regex = 'a'
+    # regex = 'abb'
+    # regex = 'a*b+'
+
     print('Input regex: ', regex, '\n')
 
     regex = parse_regex(regex)
@@ -333,7 +338,7 @@ def main():
     #     print('follow_pos:', i.follow_pos) 
 
     # buildo automato
-    auto = automaton.Automaton(syntax_tree, leaf_list)
+    auto = automaton.Automaton(syntax_tree, leaf_list, {'a'})
 
 if __name__ == '__main__':
     main()
