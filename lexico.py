@@ -1,3 +1,4 @@
+from collections import deque
 from pprint import pprint  # para printar os atributos
 
 # definimos classe de automatos, podem ser
