@@ -1,6 +1,7 @@
 
 from print_tree import print_tree
 import automaton
+import lexico
 
 ## por enquanto a arvore consiste apenas de nodos ligados
 class Node:
@@ -16,13 +17,21 @@ class Node:
 
 ## TODO: modificar regra para identificar os simbolos
 #        de um alfabeto proveniente das definições regulares(?)
-def is_operand(c: str, alphabet=None) -> bool:
-	return c.isalnum() or c in {'#', '&'}
+def is_operand(c: str, reg_defs: dict=None) -> bool:
+    return c in reg_defs.keys() or c in {'#', '&'}
+	# return c.isalnum() or c in {'#', '&'}
+
+def is_unfolded_operand(c: str, reg_defs: dict) -> bool:
+    for v in reg_defs.values():
+        for i in v:
+            if i == c:
+                return True
+    return False
 
 def is_operator(c: str) -> bool:
 	return c in {'*', '|', '.', '?'}
 
-def parse_regex(re: str) -> str:
+def parse_regex(re: str, reg_defs: dict) -> str:
     """
     Adequa o regex de entrada para o construtor da árvore sintática 
     Obs: não leva em consideração erros
@@ -32,9 +41,36 @@ def parse_regex(re: str) -> str:
         incluindo na expressão os parenteses que respeitem
         as precedencias anteriores
     :param re: expressão regular qualquer (input)
+    :param reg_defs: definicoes regulares
     :return: expressão regular 'parseada'
     """
 
+    i = 0
+    new_re = []
+    while i < len(re):
+        if re[i]!='{':
+            new_re.append(re[i])
+            i += 1
+            print(re[i])
+            print('pass')
+        else:
+            ind = i + 1
+            end = re[ind:].find('}') + 2
+            print(re[ind:])
+            print(ind)
+            print(end)
+            input(re[ind:end])
+
+
+            if is_operand(re[ind:end], reg_defs):
+                for value in reg_defs[re[ind:end]]:
+                    new_re.append(value+'|')
+                new_re = new_re[:-1] # cut out last '|'
+            else:
+                print('erro, expressão mal formada')
+            i += end - ind
+    
+    print(new_re)
     # regex
     re = '(' + re + ')#.'
     # parsed regex 
@@ -54,11 +90,11 @@ def parse_regex(re: str) -> str:
         #   ')(' -> ') . (' 
         #   'aaa' -> 'a . a . a'
         #   'a*b' -> 'a* . b'
-        if (is_operand(re[i]) or re[i] == '(') and (is_operand(pre[-1]) or pre[-1] in {'*', ')'} ):
+        if (is_operand(re[i], reg_defs) or re[i] == '(') and (is_operand(pre[-1], reg_defs) or pre[-1] in {'*', ')'} ):
             pre += '.' + re[i]
 
         # copiar diretamente (exceto para '?')
-        elif re[i] in {'(', ')'} or is_operator(re[i]) or is_operand(re[i]):
+        elif re[i] in {'(', ')'} or is_operator(re[i]) or is_operand(re[i], reg_defs):
             
             # substituir operador '?' por ' ( _subexpressão_ |&) . '
             # obs: a inclusão dos parenteses é necessaria para
@@ -78,7 +114,7 @@ def parse_regex(re: str) -> str:
                 # e fechamentos dos parenteses na expressão (se existirem)
                 while j > -1:
 
-                    if not is_operand(pre[j]) or parenteses:
+                    if not is_operand(pre[j], reg_defs) or parenteses:
                         buf = pre[j] + buf
 
                         # contagem de parenteses existentes
@@ -133,7 +169,7 @@ def parse_regex(re: str) -> str:
 Algoritmo adaptado de:
 https://www.geeksforgeeks.org/program-to-convert-infix-notation-to-expression-tree/?ref=rp
 """
-def build_ST(re: str) -> Node:
+def build_ST(re: str, reg_defs) -> Node:
     """
     Retorna a árvore sintática de uma dada expressão 
     regular parseada (por parse_regex()) na forma infixa.
@@ -156,7 +192,7 @@ def build_ST(re: str) -> Node:
             cs.append(re[i])
         
         # Push the operands in node stack
-        elif is_operand(re[i]):
+        elif is_unfolded_operand(re[i], reg_defs):
             new = Node(re[i])
             ns.append(new)
 
@@ -208,7 +244,7 @@ def build_ST(re: str) -> Node:
     return father
 
 
-def specify_nodes(as_root: Node) -> (Node, list):
+def specify_nodes(as_root: Node, reg_defs) -> (Node, list):
     '''
     gera valores nullable, firstpos, lastpos e followpos
     percorrendo a ST em pós ordem: filho esquerda, filho 
@@ -229,7 +265,7 @@ def specify_nodes(as_root: Node) -> (Node, list):
     while(stack):
         curr_node = stack.pop()
         # caso seja folha
-        if is_operand(curr_node.value):
+        if is_unfolded_operand(curr_node.value, reg_defs):
             if curr_node == '&':
                 curr_node.nullable = True
             else:
@@ -299,7 +335,8 @@ def print_recursively(root: Node):
 # Teste
 def main():
     # regexes testados (agaora todos OK!)
-    regex = '(a | b)*abb'
+    regex = '({a} | {b})*{a}{b}{b}'
+    # regex = '(a | b)*abb'
     # regex = '(a | b) ? (a| b)?aa'
     # regex = 'a|b* a'
     # regex = 'a|b|c'
@@ -316,14 +353,23 @@ def main():
 
     print('Input regex: ', regex, '\n')
 
-    regex = parse_regex(regex)
+    # define reg_defs
+    lex = lexico.Lexico()
+    reg_defs_simple = dict()
+    (a, symbols_a)= lex.parse_regular_definition('a : [a]')
+    (b, symbols_b)= lex.parse_regular_definition('b : [b]')
+    reg_defs_simple[a] = symbols_a
+    reg_defs_simple[b] = symbols_b
+
+
+    regex = parse_regex(regex, reg_defs_simple)
     print('Parsed regex: ', regex, '\n')
 
-    syntax_tree = build_ST(regex)
+    syntax_tree = build_ST(regex, reg_defs_simple)
     print_tree(syntax_tree)
     
     # buildo nullable, lpos, fpos, followpos
-    (syntax_tree, leaf_list) = specify_nodes(syntax_tree)
+    (syntax_tree, leaf_list) = specify_nodes(syntax_tree, reg_defs_simple)
     
     # VALIDACAO, se quiser ver, uncomment
     # print_recursively(syntax_tree)

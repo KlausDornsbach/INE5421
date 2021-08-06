@@ -247,20 +247,34 @@ class Lexico():
             alphabet = part.split('|')
             if alphabet == None:
                 print('parse error! please input regular definition in correct format')
-        return {key : alphabet}
+        return (key, alphabet)
 
 def main():
     lex = Lexico()
-    letter_ = lex.parse_regular_definition('letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z_]')
+    # dicionario de definicoes regulares
+    reg_defs = dict()
+    (letter_, symbols)= lex.parse_regular_definition('letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z_]')
+    reg_defs[letter_] = symbols
+    (digit, symbols_d) = lex.parse_regular_definition('digit : [0,1,2,3,4,5,6,7,8,9]')
+    reg_defs[digit] = symbols_d
+    
+    # definicao pra automatos de transicoes de 'a' e 'b'
+    reg_defs_simple = dict()
+    (a, symbols_a)= lex.parse_regular_definition('a : [a]')
+    (b, symbols_b)= lex.parse_regular_definition('b : [b]')
+    reg_defs_simple[a] = symbols_a
+    reg_defs_simple[b] = symbols_b
 
     # teste ERs -> AFDs -> uniao -> determinizacao
     # com as expressoes regulares equivalentes
     # aos afds da figura 3.35 no livro do Aho
 
     # parse das ERs
-    re1 = syntax_tree.parse_regex('a')
-    re2 = syntax_tree.parse_regex('abb')
-    re3 = syntax_tree.parse_regex('a*bb*')
+    re1 = syntax_tree.parse_regex('a', reg_defs_simple)
+    re2 = syntax_tree.parse_regex('abb', reg_defs_simple)
+    re3 = syntax_tree.parse_regex('a*bb*', reg_defs_simple)
+
+    re4 = syntax_tree.parse_regex('{letter_}({letter_}|{digit})*', reg_defs)  # tratar isso
 
     # construcao das arvores sintaticas para cada ER
     st1 = syntax_tree.build_ST(re1)
@@ -331,9 +345,9 @@ def main():
     # pprint(afd_uniao.__dict__)
 
     # print('\nTeste da execução sobre algumas palavras...')
-    # words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
-    # for word in words:
-    #     print(f'run({word}) = {afd_uniao.run(word)}')
+    words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
+    for word in words:
+        print(f'run({word}) = {afd_uniao.run(word)}')
     
 
 if __name__ == '__main__':
