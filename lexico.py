@@ -1,6 +1,10 @@
 from collections import deque
 from pprint import pprint  # para printar os atributos
 
+from print_tree import print_tree
+import automaton
+import syntax_tree
+
 # definimos classe de automatos, podem ser
 # deterministicos ou não, epsilon transicoes
 # sao representadas como &
@@ -249,76 +253,87 @@ def main():
     lex = Lexico()
     letter_ = lex.parse_regular_definition('letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z_]')
 
-    # teste de uniao com os afds da figura 3.35 no livro do Aho
-    alphabet = {'a','b'}
-    states = {1, 2}
-    init_state = 1
-    transitions = {(1,'a'): {2}}
-    final_states = {2}
-    afd1 = Automaton(alphabet, states, init_state, transitions, final_states)
+    # teste ERs -> AFDs -> uniao -> determinizacao
+    # com as expressoes regulares equivalentes
+    # aos afds da figura 3.35 no livro do Aho
 
-    states = {3, 4, 5, 6}
-    init_state = 3
-    transitions = {
-        (3,'a'): {4},
-        (4,'b'): {5},
-        (5,'b'): {6}
-    }
-    final_states = {6}
-    afd2 = Automaton(alphabet, states, init_state, transitions, final_states)
+    # parse das ERs
+    re1 = syntax_tree.parse_regex('a')
+    re2 = syntax_tree.parse_regex('abb')
+    re3 = syntax_tree.parse_regex('a*bb*')
 
-    states = {7, 8}
-    init_state = 7
-    transitions = {
-        (7,'a'): {7},
-        (7,'b'): {8},
-        (8,'b'): {8}
-    }
-    final_states = {8}
-    afd3 = Automaton(alphabet, states, init_state, transitions, final_states)
+    # construcao das arvores sintaticas para cada ER
+    st1 = syntax_tree.build_ST(re1)
+    st2 = syntax_tree.build_ST(re2)
+    st3 = syntax_tree.build_ST(re3)
 
-    # faz a uniao e printa os atributos do afnd resultante
-    afnd_uniao = lex.afd_union(afd1, afd2, afd3)
-    print('União dos AFDs antes da determinização:\n')
-    pprint(afnd_uniao.__dict__)
+    # print das arvores, uncomment para ver
+    # print_tree(st1)
+    # print_tree(st2)
+    # print_tree(st3)
 
-    print('\n===================================================\n')
+    # computa nullable, firstpos, lastpos, followpos
+    (st1, leaf_list1) = syntax_tree.specify_nodes(st1)
+    (st2, leaf_list2) = syntax_tree.specify_nodes(st2)
+    (st3, leaf_list3) = syntax_tree.specify_nodes(st3)
 
-    # determiniza o afnd resultante da uniao e printa seus atributos
-    afd_uniao = lex.det_automaton(afnd_uniao)
-    print('União dos AFDs após determinização:\n')
-    pprint(afd_uniao.__dict__)
+    # gera os afds para cada ER
+    afd1 = automaton.Automaton(st1, leaf_list1)
+    afd2 = automaton.Automaton(st2, leaf_list2)
+    afd3 = automaton.Automaton(st3, leaf_list3)
 
-    print('\nTeste da execução sobre algumas palavras...')
-    words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
-    for word in words:
-        print(f'run({word}) = {afd_uniao.run(word)}')
-    
+    print('BUG: classes de Automaton estão definidas diferente neste arquivo e em automaton.py',end='\n\n')
+    # printa as estruturas dos afds, uncomment pra ver
+    pprint(afd1.__dict__)
+    # pprint(afd2.__dict__)
+    # pprint(afd3.__dict__)
+
     # print('\n===================================================\n')
 
-    # teste de determinizacao com o afnd
-    # da figura 3.27 no livro do Aho
+    # teste de uniao com os afds da figura 3.35 no livro do Aho
     # alphabet = {'a','b'}
-    # states = set(range(11))
-    # init_state = 0
+    # states = {1, 2}
+    # init_state = 1
+    # transitions = {(1,'a'): {2}}
+    # final_states = {2}
+    # afd1 = Automaton(alphabet, states, init_state, transitions, final_states)
+
+    # states = {3, 4, 5, 6}
+    # init_state = 3
     # transitions = {
-    #     (0,'&'): {1,7},
-    #     (1,'&'): {2,4},
-    #     (2,'a'): {3},
-    #     (3,'&'): {6},
+    #     (3,'a'): {4},
     #     (4,'b'): {5},
-    #     (5,'&'): {6},
-    #     (6,'&'): {1,7},
-    #     (7,'a'): {8},
-    #     (8,'b'): {9},
-    #     (9,'b'): {10},
+    #     (5,'b'): {6}
     # }
-    # final_states = {10}
-    # afnd = Automaton(alphabet, states, init_state, transitions, final_states)
-    
-    # determiniza o afnd e printa os atributos do afd resultante
-    # afd = lex.det_automaton(afnd)
-    # pprint(afd.__dict__)
+    # final_states = {6}
+    # afd2 = Automaton(alphabet, states, init_state, transitions, final_states)
+
+    # states = {7, 8}
+    # init_state = 7
+    # transitions = {
+    #     (7,'a'): {7},
+    #     (7,'b'): {8},
+    #     (8,'b'): {8}
+    # }
+    # final_states = {8}
+    # afd3 = Automaton(alphabet, states, init_state, transitions, final_states)
+
+    # # faz a uniao e printa os atributos do afnd resultante
+    # afnd_uniao = lex.afd_union(afd1, afd2, afd3)
+    # print('União dos AFDs antes da determinização:\n')
+    # pprint(afnd_uniao.__dict__)
+
+    # print('\n===================================================\n')
+
+    # determiniza o afnd resultante da uniao e printa seus atributos
+    # afd_uniao = lex.det_automaton(afnd_uniao)
+    # print('União dos AFDs após determinização:\n')
+    # pprint(afd_uniao.__dict__)
+
+    # print('\nTeste da execução sobre algumas palavras...')
+    # words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
+    # for word in words:
+    #     print(f'run({word}) = {afd_uniao.run(word)}')
     
 
 if __name__ == '__main__':
