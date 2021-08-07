@@ -292,9 +292,9 @@ def main():
     print('\nafd3:')
     pprint(afd3.__dict__)
 
-    print('\nafd_union:')
-    afd_union = lex.afd_union(afd1, afd2, afd3)
-    pprint(afd_union.__dict__)
+    print('\nafnd_union:')
+    afnd_union = lex.afd_union(afd1, afd2, afd3)
+    pprint(afnd_union.__dict__)
     
     # print('\n===================================================\n')
 
