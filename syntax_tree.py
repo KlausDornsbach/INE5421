@@ -17,9 +17,12 @@ class Node:
 
 ## TODO: modificar regra para identificar os simbolos
 #        de um alfabeto proveniente das definições regulares(?)
-def is_operand(c: str, reg_defs: dict=None) -> bool:
-    return c in reg_defs.keys() or c in {'#', '&'}
+def is_operand(c: str, alphabet: set) -> bool:
+    return c in alphabet or c in {'#', '&'}
 	# return c.isalnum() or c in {'#', '&'}
+
+def is_reg_def(s: str, reg_defs: dict) -> bool:
+    return s in reg_defs
 
 def is_unfolded_operand(c: str, reg_defs: dict) -> bool:
     for v in reg_defs.values():
@@ -29,17 +32,16 @@ def is_unfolded_operand(c: str, reg_defs: dict) -> bool:
     return False
 
 def is_operator(c: str) -> bool:
-	return c in {'*', '|', '.', '?'}
+	return c in {'*', '|', '.', '?', '+'}
 
-def parse_regex(re: str, reg_defs: dict) -> str:
+def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
     """
     Adequa o regex de entrada para o construtor da árvore sintática 
     Obs: não leva em consideração erros
     Obs2: considera-se que operandos em sequencia representam uma
          concatenação implícita. Exemplo 'abb' = 'a.b.b'
-    Obs3: caso encontre operador '?' substitui por '| &' 
-        incluindo na expressão os parenteses que respeitem
-        as precedencias anteriores
+    Obs3: caso encontre operador '(...)?' substitui por '((...)|&)' 
+    Obs4: caso encontre operador '(...)+' substitui por '(...).(...)*' 
     :param re: expressão regular qualquer (input)
     :param reg_defs: definicoes regulares
     :return: expressão regular 'parseada'
@@ -47,36 +49,35 @@ def parse_regex(re: str, reg_defs: dict) -> str:
 
     i = 0
     new_re = []
-    while i < len(re):
-        if re[i]!='{':
-            new_re.append(re[i])
-            i += 1
-            print(re[i])
-            print('pass')
+    while re != '':
+        if re[0]!='{':
+            new_re.append(re[0])
+            # i += 1
+            # print(re[0])
+            # print('pass')
+            re = re[1:] # cut off first element
         else:
-            ind = i + 1
-            end = re[ind:].find('}') + 2
-            print(re[ind:])
-            print(ind)
-            print(end)
-            input(re[ind:end])
+            start = 1
+            end = re[start:].find('}') + 1
+            # print(re[start:])
+            # print(start)
+            # print(end)
+            # input(re[start:end])
 
-
-            if is_operand(re[ind:end], reg_defs):
-                for value in reg_defs[re[ind:end]]:
+            if is_reg_def(re[start:end], reg_defs):
+                for value in reg_defs[re[start:end]]:
                     new_re.append(value+'|')
-                new_re = new_re[:-1] # cut out last '|'
+                new_re[-1] = new_re[-1][0] # cut out last '|'
             else:
                 print('erro, expressão mal formada')
-            i += end - ind
-    
-    print(new_re)
+            re = re[end+1:]
+    print(''.join(new_re))
     # regex
-    re = '(' + re + ')#.'
+    re = '(' + ''.join(new_re) + ')#.'
     # parsed regex 
     pre = re[0]
 
-    # primeiro simbolo não é analisado
+    # ^ primeiro simbolo não é analisado
     # (supõe-se que a regex é valida)
     """
     obs: a lógica aqui é basicamente tomar as decisões com base
@@ -86,23 +87,39 @@ def parse_regex(re: str, reg_defs: dict) -> str:
     for i in range(1, len(re)):
 
         # adiciona operador concat explicito na regex
-        # cobre os casos:  
+        # cobre casos como:  
         #   ')(' -> ') . (' 
         #   'aaa' -> 'a . a . a'
         #   'a*b' -> 'a* . b'
-        if (is_operand(re[i], reg_defs) or re[i] == '(') and (is_operand(pre[-1], reg_defs) or pre[-1] in {'*', ')'} ):
+        if (is_operand(re[i], alphabet) or re[i] == '(') and (is_operand(pre[-1], alphabet) or pre[-1] in {'*', ')'} ):
             pre += '.' + re[i]
 
         # copiar diretamente (exceto para '?')
-        elif re[i] in {'(', ')'} or is_operator(re[i]) or is_operand(re[i], reg_defs):
+        elif re[i] in {'(', ')'} or is_operator(re[i]) or is_operand(re[i], alphabet):
+
             
-            # substituir operador '?' por ' ( _subexpressão_ |&) . '
+            if re[i] not in {'?', '+'}:
+                pre += re[i]
+                continue
+
+            # substituir operador '?' por '(_subexp_|&).(...)'
+            # ou '+' por (_subexp_).(_subexp_)*
             # obs: a inclusão dos parenteses é necessaria para
             #   garantir a formação da arvore de forma correta
             #   a partir do algoritmo utilizado para a arvore
-            if re[i] == '?':
-                
-                # ajustar precedencia da operação |& com parenteses já existentes
+
+            # o primeiro caso é facil: se for um operando, 
+            # basta adicionar um ( antes do mesmo.
+            if is_operand(pre[-1], alphabet):
+                if re[i] == '?':
+                    pre = pre[:-1] + '(' + pre[-1] + '|&).'
+                elif re[i] == '+':
+                    pre += '.' + pre[-1] + '*'
+            
+            # segundo caso: quando o simbolo anterior
+            # é um ), que é mais delicado por que deve-se
+            # considerar tudo que tiver dentro dos ()'s
+            else:
                 j = len(pre) - 1
                 # buffer para restaurar a regex
                 buf = ''
@@ -111,51 +128,35 @@ def parse_regex(re: str, reg_defs: dict) -> str:
                 
                 # a leitura da expressao obtida até então em 'pre' é feita 
                 # de trás para frente, para poder identificar as aberturas
-                # e fechamentos dos parenteses na expressão (se existirem)
+                # e fechamentos dos parenteses na expressão
                 while j > -1:
+                    buf = pre[j] + buf
 
-                    if not is_operand(pre[j], reg_defs) or parenteses:
-                        buf = pre[j] + buf
+                    # contagem de parenteses existentes
+                    if pre[j] == ')':
+                        parenteses += 1
+                    elif pre[j] == '(':
+                        parenteses -= 1
+                        # se fechar todos parenteses encontrados
+                        # então foi encontrada a posição para abrir
+                        # o novo '('
+                        if parenteses == 0:
+                            j = -1
+                            break
+                    
+                    j -= 1
 
-                        # contagem de parenteses existentes
-                        if pre[j] == ')':
-                            parenteses += 1
-                        elif pre[j] == '(':
-                            parenteses -= 1
-
-                            # se fechar todos parenteses encontrados
-                            # então foi encontrada a posição para abrir
-                            # o novo '('
-                            if parenteses == 0:
-                                j = -1
-                                break
-                        
-                        j -= 1
-
-                    # caso em que encontra uma posição para 
-                    # abrir o parenteses, e não se encontrou
-                    # nenhum ()'s no caminho
-                    else:
-                        pre = pre[0 : j-1] + '(' + buf
-                        break
-
-                # indica que foram encontrados parenteses teve que ser 
-                # e haviam outros parenteses no meio
-                if j == -1:
-
-                    # se nao pegou toda a expressao em 'buf',
-                    # restaura a parte anterior ao que tiver em 'buf'
-                    if len(pre) > len(buf):
-                        pre = pre[:(len(pre) - len(buf))] + '(' + buf
-                    else:
-                        pre = '(' + buf
-
-                pre += '|&).'
-                # aqui termina o tratamento da substituição de '?'
-
-            # caso re[i] válido e != '?'  
-            else:
-                pre += re[i]
+                # se nao pegou toda a expressao em 'buf',
+                # restaura a parte anterior ao que tiver em 'buf'
+                if len(pre) > len(buf):
+                    pre = pre[:(len(pre) - len(buf))] + '(' + buf
+                else:
+                    pre = '(' + buf
+                if re[i] == '?':
+                    pre += '|&).'
+                else:
+                    pre = pre[1:] + '.' + buf + '*'
+                # aqui termina o tratamento da substituição de '?' ou '+'
 
         # caso re[i] inválido. ignorar caractere.
         # exemplo: espaços em branco
@@ -169,7 +170,7 @@ def parse_regex(re: str, reg_defs: dict) -> str:
 Algoritmo adaptado de:
 https://www.geeksforgeeks.org/program-to-convert-infix-notation-to-expression-tree/?ref=rp
 """
-def build_ST(re: str, reg_defs) -> Node:
+def build_ST(re: str, alphabet: set) -> Node:
     """
     Retorna a árvore sintática de uma dada expressão 
     regular parseada (por parse_regex()) na forma infixa.
@@ -187,12 +188,13 @@ def build_ST(re: str, reg_defs) -> Node:
 
     for i in range(len(re)):
 
+
         # Push '(' in char stack
         if re[i] == '(':
             cs.append(re[i])
         
         # Push the operands in node stack
-        elif is_unfolded_operand(re[i], reg_defs):
+        elif is_operand(re[i], alphabet):
             new = Node(re[i])
             ns.append(new)
 
@@ -215,7 +217,7 @@ def build_ST(re: str, reg_defs) -> Node:
                     father.right = None
                 else:
                     father.right = ns.pop()
- 
+                print(father.value)
                 father.left = ns.pop()
 
                 # Push the node to the node stack
@@ -244,7 +246,7 @@ def build_ST(re: str, reg_defs) -> Node:
     return father
 
 
-def specify_nodes(as_root: Node, reg_defs) -> (Node, list):
+def specify_nodes(as_root: Node, alphabet: set) -> (Node, list):
     '''
     gera valores nullable, firstpos, lastpos e followpos
     percorrendo a ST em pós ordem: filho esquerda, filho 
@@ -265,7 +267,7 @@ def specify_nodes(as_root: Node, reg_defs) -> (Node, list):
     while(stack):
         curr_node = stack.pop()
         # caso seja folha
-        if is_unfolded_operand(curr_node.value, reg_defs):
+        if is_operand(curr_node.value, alphabet):
             if curr_node == '&':
                 curr_node.nullable = True
             else:
@@ -294,8 +296,8 @@ def specify_nodes(as_root: Node, reg_defs) -> (Node, list):
                     cn.nullable = True
                     cn.first_pos = l.first_pos
                     cn.last_pos = l.last_pos
-                for i in cn.first_pos:                      # followpos
-                    for j in cn.last_pos:
+                for i in cn.last_pos:                      # followpos
+                    for j in cn.first_pos:
                         leaf_list[i].follow_pos.add(j)
                     
                 if cn.value == '.':
@@ -335,7 +337,7 @@ def print_recursively(root: Node):
 # Teste
 def main():
     # regexes testados (agaora todos OK!)
-    regex = '({a} | {b})*{a}{b}{b}'
+    # regex = '({a} | {b})*{a}{b}{b}'
     # regex = '(a | b)*abb'
     # regex = '(a | b) ? (a| b)?aa'
     # regex = 'a|b* a'
@@ -350,6 +352,11 @@ def main():
 
     # miniteste 06
     # regex = '(a | b)? (a| b)* aa'
+
+    # exemplo aho figura 3.35
+    regex = 'a'
+    # regex = 'abb'
+    # regex = 'a*b+'
 
     print('Input regex: ', regex, '\n')
 
@@ -374,13 +381,13 @@ def main():
     # VALIDACAO, se quiser ver, uncomment
     # print_recursively(syntax_tree)
     # print('----------------------------')
-    # testando followpos
+    # # testando followpos
     # for i in leaf_list:
-    #     print(i.value)
-    #     print(i.follow_pos) 
+    #     print('node:', i.value, i.first_pos)
+    #     print('follow_pos:', i.follow_pos) 
 
     # buildo automato
-    auto = automaton.Automaton(syntax_tree, leaf_list)
+    auto = automaton.Automaton(syntax_tree, leaf_list, {'a'})
 
 if __name__ == '__main__':
     main()

@@ -39,56 +39,22 @@ class Automaton():
     def read_file():
         pass
 
-class SyntaxTree():
-    # a arvore tem nodos, cada nodo com 2 nodos filhos
-    # um nodo pode ter os seguintes simbolos: 
-    # -definicao regular
-    # operacao: *?|.
-    # quando é encontrado () na entrada, ponteiro para
-    # pai é setado 
-    class Node():
-        def __init__(self, symbol, c1=None, c2=None, father=None):
-            self.c1 = c1
-            self.c2 = c2
-            self.symbol = symbol
-        
-    # a arvore de sintaxe recebe um dicionario
-    # que mapeia o nome de definicoes regulares 
-    # para simbolos, esses simbolos podem ser
-    # definicoes regulares com simbolos internos
-    def __init__(self, expression, dictionaries):
-        expression.append('#')
-        # cria arvore
-        # descobre nullable, lastpos, nextpos e followpos
-        # cria automato
-        # self.automaton = Automaton()
-        pass
-    # usado na definicao de tokens, ex.:
-    # token -> id : letter(letter|digit)*
-    def parse_token_definition(self, token):
-        pass
-
-    def create_tree(self, expression):
-        i = len(expression) - 1     # comeco no fim
-        end = Node('#')
-        root = Node('.', None, end)
-        father = root
-        while i > -1:
-            new = Node(expression[i])
-            if expression[i] in {'?', '*', '|', ')', '('}:
-                # finds special character
-                if expression[i] == '*':
-                    pass
-                pass
-            else: # finds a leaf
-                concat_node = Node('.', new, father.c1)
-                father.c1 = concat_node
-                father = new
-            i -= i
-        pass
-
-
 class Lexico():
+    '''
+    parametro expression é uma lista de strings que são
+    definicoes regulares
+    :attr reg_def: dicionario[key] -> {set de simbolos}
+    :attr alphabet: set da uniao de simbolos definidos
+    '''
+    def __init__(self, expressions):
+        reg_defs = dict()
+        alphabet = set()
+        for i in expressions:
+            (key, value) = self.parse_regular_definition(i)
+            alphabet = alphabet | value
+            reg_defs[key] = value
+        self.reg_defs = reg_defs
+        self.alphabet = alphabet
     # transformar gramatica livre de contexto
     # em um autômato que nos permita reconhecer
     # a classe de um lexema
@@ -247,34 +213,88 @@ class Lexico():
             alphabet = part.split('|')
             if alphabet == None:
                 print('parse error! please input regular definition in correct format')
-        return (key, alphabet)
+        return (key, set(alphabet))
+    
+'''
+funcao make automatiza transformacao ER->AFD->Uniao->Determinizacao
+:param reg_defs: lista de str com definicoes regulares 
+:param tokens: lista de str com definicoes de tokens
+:param verbose: printar ou nao as informacoes ao longo do processo
+:return automato_completo: Automato pronto para ler entradas de texto
+'''
+def make(reg_defs: list, raw_tokens: list, verbose: bool=True):
+    lex = Lexico(reg_defs)
+
+    automata = []
+
+    for rt in raw_tokens:
+        regex = syntax_tree.parse_regex(rt, lex.reg_defs, lex.alphabet)
+        st = syntax_tree.build_ST(regex, lex.alphabet)
+        (st, leaf_list) = syntax_tree.specify_nodes(st, lex.alphabet)
+        afd = automaton.Automaton(st, leaf_list, lex.alphabet)
+        print(afd.init_state)
+        print(afd.states)
+        print(afd.final_states)
+        print(afd.transitions)
+        print(afd.alphabet)
+        if verbose:
+            print('\n============================\n')
+            print(f'raw token: {rt}')
+            print(f'derived regex: {regex}')
+            print(f'generated tree:')
+            print_tree(st)
+            print('automaton:')
+            afd.print_automaton()
+        
+        # traducao pro automato do Eduardo
+        automata.append(Automaton(afd.alphabet, afd.states, afd.init_state, afd.transitions, afd.final_states))
+    
+    # union
+    afnd_uniao = lex.afd_union(*automata)
+    
+    # det
+    afd_uniao = lex.det_automaton(afnd_union)
+    if verbose:
+        print('\n====================================\nunion\n====================================\n')
+        pprint(afnd_uniao.__dict__)
+        print('\n====================================\ndeterminizado\n====================================\n')
+        pprint(afd_uniao.__dict__)
+
+    
 
 def main():
-    lex = Lexico()
-    # dicionario de definicoes regulares
-    reg_defs = dict()
-    (letter_, symbols)= lex.parse_regular_definition('letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z_]')
-    reg_defs[letter_] = symbols
-    (digit, symbols_d) = lex.parse_regular_definition('digit : [0,1,2,3,4,5,6,7,8,9]')
-    reg_defs[digit] = symbols_d
-    
-    # definicao pra automatos de transicoes de 'a' e 'b'
-    reg_defs_simple = dict()
-    (a, symbols_a)= lex.parse_regular_definition('a : [a]')
-    (b, symbols_b)= lex.parse_regular_definition('b : [b]')
-    reg_defs_simple[a] = symbols_a
-    reg_defs_simple[b] = symbols_b
+    regular_def1 = 'letter_ : [a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,w,y,z,_]'
+    regular_def2 = 'digit : [0,1,2,3,4,5,6,7,8,9]'
+    regular_def3 = 'a : [a]'
+    regular_def4 = 'b : [b]'
+
+    token1 = '{letter_}({letter_}|{digit})*'
+
+    make([regular_def1, regular_def2], [token1], False)
+
+
+
+
+
+    lex1 = Lexico([regular_def1, regular_def2])
+    lex2 = Lexico([regular_def3, regular_def4])
+    print(lex1.alphabet)
 
     # teste ERs -> AFDs -> uniao -> determinizacao
     # com as expressoes regulares equivalentes
     # aos afds da figura 3.35 no livro do Aho
 
+    re4 = syntax_tree.parse_regex('{letter_}({letter_}|{digit})*', lex1.reg_defs, lex1.alphabet)
+    print(re4)
+    st4 = syntax_tree.build_ST(re4, lex1.alphabet)
+    print_tree(st4)
+    (st4, leaf_list4) = syntax_tree.specify_nodes(st4, lex1.alphabet)
+    afd4 = automaton.Automaton(st4, leaf_list4, lex1.alphabet)
+    print('\n====================================\n')
     # parse das ERs
-    re1 = syntax_tree.parse_regex('a', reg_defs_simple)
-    re2 = syntax_tree.parse_regex('abb', reg_defs_simple)
-    re3 = syntax_tree.parse_regex('a*bb*', reg_defs_simple)
-
-    re4 = syntax_tree.parse_regex('{letter_}({letter_}|{digit})*', reg_defs)  # tratar isso
+    re1 = syntax_tree.parse_regex('a')
+    re2 = syntax_tree.parse_regex('abb')
+    re3 = syntax_tree.parse_regex('a*b+')
 
     # construcao das arvores sintaticas para cada ER
     st1 = syntax_tree.build_ST(re1)
@@ -282,25 +302,29 @@ def main():
     st3 = syntax_tree.build_ST(re3)
 
     # print das arvores, uncomment para ver
-    # print_tree(st1)
-    # print_tree(st2)
-    # print_tree(st3)
+    print_tree(st1)
+    print_tree(st2)
+    print_tree(st3)
 
     # computa nullable, firstpos, lastpos, followpos
-    (st1, leaf_list1) = syntax_tree.specify_nodes(st1)
+    (st1, leaf_list1) = syntax_tree.specify_nodes(st1, lex1.reg_defs)
     (st2, leaf_list2) = syntax_tree.specify_nodes(st2)
     (st3, leaf_list3) = syntax_tree.specify_nodes(st3)
 
     # gera os afds para cada ER
-    afd1 = automaton.Automaton(st1, leaf_list1)
-    afd2 = automaton.Automaton(st2, leaf_list2)
-    afd3 = automaton.Automaton(st3, leaf_list3)
+    afd1 = automaton.Automaton(st1, leaf_list1, lex2.alphabet)
+    afd2 = automaton.Automaton(st2, leaf_list2, lex2.alphabet)
+    afd3 = automaton.Automaton(st3, leaf_list3, lex2.alphabet)
 
-    print('BUG: classes de Automaton estão definidas diferente neste arquivo e em automaton.py',end='\n\n')
     # printa as estruturas dos afds, uncomment pra ver
+    print('afd1:')
     pprint(afd1.__dict__)
-    # pprint(afd2.__dict__)
-    # pprint(afd3.__dict__)
+
+    print('\nafd2:')
+    pprint(afd2.__dict__)
+
+    print('\nafd3:')
+    pprint(afd3.__dict__)
 
     # print('\n===================================================\n')
 

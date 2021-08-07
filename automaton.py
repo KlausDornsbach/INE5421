@@ -10,9 +10,9 @@ class Automaton():
         (simbolo, estado.label) : (estado1, estado2, ...)
 
     '''
-    def __init__(self, syntax_tree: syntax_tree.Node, leaf_list: list, alphabet: set = {'a', 'b'}):
-        initial, states, finals, transitions = self.build_automaton(syntax_tree, leaf_list, alphabet)
-        self.initial_state = initial
+    def __init__(self, syntax_tree: syntax_tree.Node, leaf_list: list, alphabet: set):
+        states, finals, transitions = self.build_automaton(syntax_tree, leaf_list, alphabet)
+        self.init_state = 0 # id do estado inicial sempre vai ser igual por causa do algoritmo
         self.states = states
         self.final_states = finals
         self.transitions = transitions
@@ -50,13 +50,22 @@ class Automaton():
     slide
     '''
     def build_automaton(self, sa_root: syntax_tree.Node, leaf_list: list, alphabet: set):
+        # state_id (contador para identificar os estados)
+        sid = 0
+        
         # estados que farão parte do automato
         d_states = set()
-        transitions = dict()
+        d_transitions = dict()
+        states = set() # conjunto de estados pelo seu numero
+        states_map = dict() # dicionario que mapeia d_state -> sid
 
         # estado inicial
-        initial_D = State(sa_root.first_pos)
+        initial_D = State(sa_root.first_pos, sid)
         d_states.add(initial_D)
+        
+        states_map[frozenset(initial_D.state)] = sid
+        states.add(sid)
+        sid += 1
         
         # conjunto de estados finais
         final_states = set()
@@ -67,40 +76,82 @@ class Automaton():
             s.marked = True
     
             for a in alphabet:
-                transitions[(a, s.label)] = set()
                 u = set()
                 
                 for state_index in s.state:
                     if leaf_list[state_index].value == a:
                         u = u | leaf_list[state_index].follow_pos
                 
-                if not self.is_in_d_states(d_states, u):
-                    # new state
-                    new_state = State(u)
-                    d_states.add(new_state)
+                # AQUIII KLAUS, mudei a logica, caso u seja vazio
+                # tratar caso de transição que nao vai 
+                # para lugar nenhum (u vazio) (???)
+                if u:
+                    d_transitions[(s.label, a)] = set()
 
-                    # se novo estado tem # ele eh final
-                    if (len(leaf_list) - 1) in u:
-                        final_states.add(new_state)
-                
-                # define transicao
-                transitions[(a, s.label)] = transitions[(a, s.label)] | u
+                    if not self.is_in_d_states(d_states, u):
+                        # new state
+                        new_state = State(u, sid)
+                        d_states.add(new_state)
+                        
+                        states.add(sid)
+                        states_map[frozenset(u)] = sid
+                        sid += 1
+
+                        # se novo estado tem # ele eh final
+                        if (len(leaf_list) - 1) in u:
+                            final_states.add(new_state.label)
+                    
+                    # define transicao
+                    d_transitions[(s.label, a)] = d_transitions[(s.label, a)] | u
 
             s = self.find_unmarked(d_states)
 
-        # só pra validacao, se quiser ver, uncomment
-        # for st in d_states:
-        #     for a in alphabet:
-        #         print(f'symbol: {a}, state: {st.label}, transitions to: {transitions[(a, st.label)]}')
-        
+        ## converter as 'd_transiçoes' do algoritmo ER->AFD
+        # para transiçoes com os indices numericos dos estados
+        transitions = self.convert_transitions(states_map, d_transitions)
 
-        # print(f'initial {initial_D.label}')
-
-        # print('finals')
-        # for st in final_states:
-        #     print(st.label)
+        # # só pra validacao, se quiser ver, uncomment    
+        # print('\ntransitions table:', end = '\n\n  | ')
+        # for a in sorted(alphabet):
+        #     print(f'{a}', end = ' | ')
+        # for st in states:
+        #     print(f'\n{st}', end = ' | ')
+        #     for a in sorted(alphabet):
+        #         if (st, a) in transitions.keys():
+        #             print(f'{transitions[(st, a)]}', end = ' | ')
+        #         else:
+        #             print('-', end = ' | ') # sem transição            
         
-        return (initial_D, d_states, final_states, transitions)
+        # print(f'\n\ninitial: {initial_D.label}')
+        # print('finals:', final_states)
+        return (states, final_states, transitions)
+
+    def print_automaton(self):
+                # # só pra validacao, se quiser ver, uncomment        
+        print('\ntransitions table:', end = '\n\n  | ')
+        for a in sorted(self.alphabet):
+            print(f'{a}', end = ' | ')
+        for st in self.states:
+            print(f'\n{st}', end = ' | ')
+            for a in sorted(self.alphabet):
+                if (st, a) in self.transitions.keys():
+                    print(f'{self.transitions[(st, a)]}', end = ' | ')
+                else:
+                    print('-', end = ' | ') # sem transição            
+        
+        print(f'\n\ninitial: {self.init_state}')
+        print('finals:', self.final_states)
+
+    '''
+    função que converte as d_transitions do algoritmo
+    ER -> AFD para transições com os estados pelo nº do estado
+    '''
+    def convert_transitions(self, states_map, d_transitions):
+        transitions = dict()
+        for k, v in d_transitions.items():
+            transitions[k] = states_map[frozenset(v)]
+
+        return transitions
 
 
 class State():
@@ -113,8 +164,9 @@ class State():
     :attr label: nome do estado, usado pra acessar
         o dicionario de transicoes do automato
     '''
-    def __init__(self, state: set, marked: bool=False):
+    def __init__(self, state: set, sid: int, marked: bool=False):
         self.state = state
-        self.label = str(state)
+        # self.label = str(state)
+        self.label = sid
         self.marked = marked
     
