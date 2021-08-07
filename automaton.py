@@ -63,7 +63,7 @@ class Automaton():
         initial_D = State(sa_root.first_pos, sid)
         d_states.add(initial_D)
         
-        states_map[frozenset(initial_D.state)] = sid
+        states_map[frozenset(initial_D.state)] = {sid}
         states.add(sid)
         sid += 1
         
@@ -94,7 +94,7 @@ class Automaton():
                         d_states.add(new_state)
                         
                         states.add(sid)
-                        states_map[frozenset(u)] = sid
+                        states_map[frozenset(u)] = {sid}
                         sid += 1
 
                         # se novo estado tem # ele eh final
