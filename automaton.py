@@ -10,13 +10,28 @@ class Automaton():
         (simbolo, estado.label) : (estado1, estado2, ...)
 
     '''
-    def __init__(self, syntax_tree: syntax_tree.Node, leaf_list: list, alphabet: set):
-        states, finals, transitions = self.build_automaton(syntax_tree, leaf_list, alphabet)
-        self.init_state = 0 # id do estado inicial sempre vai ser igual por causa do algoritmo
+    def __init__(self, syntax_tree: syntax_tree.Node, leaf_list: list):
+        self.alphabet = self.get_symbols(leaf_list)
+        states, finals, transitions = self.build_automaton(syntax_tree, leaf_list, self.alphabet)
+        self.init_state = 1 # id do estado inicial sempre vai ser igual por causa do algoritmo
         self.states = states
         self.final_states = finals
         self.transitions = transitions
-        self.alphabet = alphabet
+
+
+    '''
+    usado em: __init__
+    :param leaf_list: lista de simbolos da ER
+    :return: conjunto de simbolos formar o
+        alfabeto do automato 
+    '''
+    def get_symbols(self, leaf_list) -> set:
+        alphabet = set()
+        for s in leaf_list:
+            alphabet.add(s.value)
+
+        alphabet.discard('#')
+        return sorted(alphabet)
 
     '''
     usado em: build_automaton
@@ -51,7 +66,7 @@ class Automaton():
     '''
     def build_automaton(self, sa_root: syntax_tree.Node, leaf_list: list, alphabet: set):
         # state_id (contador para identificar os estados)
-        sid = 0
+        sid = 1
         
         # estados que farão parte do automato
         d_states = set()
@@ -63,7 +78,7 @@ class Automaton():
         initial_D = State(sa_root.first_pos, sid)
         d_states.add(initial_D)
         
-        states_map[frozenset(initial_D.state)] = sid
+        states_map[frozenset(initial_D.state)] = {sid}
         states.add(sid)
         sid += 1
         
@@ -94,7 +109,7 @@ class Automaton():
                         d_states.add(new_state)
                         
                         states.add(sid)
-                        states_map[frozenset(u)] = sid
+                        states_map[frozenset(u)] = {sid}
                         sid += 1
 
                         # se novo estado tem # ele eh final
@@ -110,18 +125,20 @@ class Automaton():
         # para transiçoes com os indices numericos dos estados
         transitions = self.convert_transitions(states_map, d_transitions)
 
-        # # só pra validacao, se quiser ver, uncomment
-        # for st in d_states:
-        #     for a in alphabet:
-        #         if (st.label, a) in transitions.keys():
-        #             print(f'symbol: {a}, state: {st.label}, transitions to: {transitions[(st.label, a)]}')
+        # # só pra validacao, se quiser ver, uncomment        
+        print('\ntransitions table:', end = '\n\n  |  ')
+        for a in alphabet:
+            print(f'{a}', end = '  |  ')
+        for st in states:
+            print(f'\n{st}', end = ' | ')
+            for a in alphabet:
+                if (st, a) in transitions.keys():
+                    print(f'{transitions[(st, a)]}', end = ' | ')
+                else:
+                    print(' - ', end = ' | ') # sem transição            
         
-
-        # print(f'initial {initial_D.label}')
-
-        # print('finals')
-        # for st in final_states:
-        #     print(st)
+        print(f'\n\ninitial: {initial_D.label}')
+        print('finals:', final_states)
         
         return (states, final_states, transitions)
 
@@ -150,7 +167,6 @@ class State():
     '''
     def __init__(self, state: set, sid: int, marked: bool=False):
         self.state = state
-        # self.label = str(state)
         self.label = sid
         self.marked = marked
     

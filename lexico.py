@@ -293,9 +293,9 @@ def main():
     (st3, leaf_list3) = syntax_tree.specify_nodes(st3)
 
     # gera os afds para cada ER
-    afd1 = automaton.Automaton(st1, leaf_list1, {'a'} )
-    afd2 = automaton.Automaton(st2, leaf_list2, {'a', 'b'} )
-    afd3 = automaton.Automaton(st3, leaf_list3, {'a', 'b'} )
+    afd1 = automaton.Automaton(st1, leaf_list1)
+    afd2 = automaton.Automaton(st2, leaf_list2)
+    afd3 = automaton.Automaton(st3, leaf_list3)
 
     # printa as estruturas dos afds, uncomment pra ver
     print('afd1:')
@@ -307,6 +307,14 @@ def main():
     print('\nafd3:')
     pprint(afd3.__dict__)
 
+    print('\nafnd_union:')
+    afnd_union = lex.afd_union(afd1, afd2, afd3)
+    pprint(afnd_union.__dict__)
+    
+    print('\nafd_union:')
+    afd_union = lex.det_automaton(afnd_union)
+    pprint(afd_union.__dict__)
+    
     # print('\n===================================================\n')
 
     # teste de uniao com os afds da figura 3.35 no livro do Aho
