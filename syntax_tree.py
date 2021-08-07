@@ -314,7 +314,7 @@ def main():
     # regex = '(a | b)? (a| b)* aa'
 
     # exemplo aho figura 3.35
-    regex = 'a'
+    # regex = 'a'
     # regex = 'abb'
     # regex = 'a*b+'
 
@@ -338,7 +338,7 @@ def main():
     #     print('follow_pos:', i.follow_pos) 
 
     # buildo automato
-    auto = automaton.Automaton(syntax_tree, leaf_list, {'a'})
+    auto = automaton.Automaton(syntax_tree, leaf_list)
 
 if __name__ == '__main__':
     main()

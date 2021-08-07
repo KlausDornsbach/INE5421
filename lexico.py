@@ -278,9 +278,9 @@ def main():
     (st3, leaf_list3) = syntax_tree.specify_nodes(st3)
 
     # gera os afds para cada ER
-    afd1 = automaton.Automaton(st1, leaf_list1, {'a'} )
-    afd2 = automaton.Automaton(st2, leaf_list2, {'a', 'b'} )
-    afd3 = automaton.Automaton(st3, leaf_list3, {'a', 'b'} )
+    afd1 = automaton.Automaton(st1, leaf_list1)
+    afd2 = automaton.Automaton(st2, leaf_list2)
+    afd3 = automaton.Automaton(st3, leaf_list3)
 
     # printa as estruturas dos afds, uncomment pra ver
     print('afd1:')

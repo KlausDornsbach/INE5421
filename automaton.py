@@ -10,13 +10,28 @@ class Automaton():
         (simbolo, estado.label) : (estado1, estado2, ...)
 
     '''
-    def __init__(self, syntax_tree: syntax_tree.Node, leaf_list: list, alphabet: set):
-        states, finals, transitions = self.build_automaton(syntax_tree, leaf_list, alphabet)
+    def __init__(self, syntax_tree: syntax_tree.Node, leaf_list: list):
+        self.alphabet = self.get_symbols(leaf_list)
+        states, finals, transitions = self.build_automaton(syntax_tree, leaf_list, self.alphabet)
         self.init_state = 1 # id do estado inicial sempre vai ser igual por causa do algoritmo
         self.states = states
         self.final_states = finals
         self.transitions = transitions
-        self.alphabet = alphabet
+
+
+    '''
+    usado em: __init__
+    :param leaf_list: lista de simbolos da ER
+    :return: conjunto de simbolos formar o
+        alfabeto do automato 
+    '''
+    def get_symbols(self, leaf_list) -> set:
+        alphabet = set()
+        for s in leaf_list:
+            alphabet.add(s.value)
+
+        alphabet.discard('#')
+        return sorted(alphabet)
 
     '''
     usado em: build_automaton
@@ -111,16 +126,16 @@ class Automaton():
         transitions = self.convert_transitions(states_map, d_transitions)
 
         # # só pra validacao, se quiser ver, uncomment        
-        print('\ntransitions table:', end = '\n\n  | ')
-        for a in sorted(alphabet):
-            print(f'{a}', end = ' | ')
+        print('\ntransitions table:', end = '\n\n  |  ')
+        for a in alphabet:
+            print(f'{a}', end = '  |  ')
         for st in states:
             print(f'\n{st}', end = ' | ')
-            for a in sorted(alphabet):
+            for a in alphabet:
                 if (st, a) in transitions.keys():
                     print(f'{transitions[(st, a)]}', end = ' | ')
                 else:
-                    print('-', end = ' | ') # sem transição            
+                    print(' - ', end = ' | ') # sem transição            
         
         print(f'\n\ninitial: {initial_D.label}')
         print('finals:', final_states)
@@ -152,7 +167,6 @@ class State():
     '''
     def __init__(self, state: set, sid: int, marked: bool=False):
         self.state = state
-        # self.label = str(state)
         self.label = sid
         self.marked = marked
     
