@@ -270,6 +270,7 @@ def main():
     # aos afds da figura 3.35 no livro do Aho
 
     # parse das ERs
+<<<<<<< HEAD
     re1 = syntax_tree.parse_regex('a', reg_defs_simple)
     re2 = syntax_tree.parse_regex('abb', reg_defs_simple)
     re3 = syntax_tree.parse_regex('a*bb*', reg_defs_simple)
@@ -282,9 +283,9 @@ def main():
     st3 = syntax_tree.build_ST(re3)
 
     # print das arvores, uncomment para ver
-    # print_tree(st1)
-    # print_tree(st2)
-    # print_tree(st3)
+    print_tree(st1)
+    print_tree(st2)
+    print_tree(st3)
 
     # computa nullable, firstpos, lastpos, followpos
     (st1, leaf_list1) = syntax_tree.specify_nodes(st1)
@@ -292,15 +293,19 @@ def main():
     (st3, leaf_list3) = syntax_tree.specify_nodes(st3)
 
     # gera os afds para cada ER
-    afd1 = automaton.Automaton(st1, leaf_list1)
-    afd2 = automaton.Automaton(st2, leaf_list2)
-    afd3 = automaton.Automaton(st3, leaf_list3)
+    afd1 = automaton.Automaton(st1, leaf_list1, {'a'} )
+    afd2 = automaton.Automaton(st2, leaf_list2, {'a', 'b'} )
+    afd3 = automaton.Automaton(st3, leaf_list3, {'a', 'b'} )
 
-    print('BUG: classes de Automaton estão definidas diferente neste arquivo e em automaton.py',end='\n\n')
     # printa as estruturas dos afds, uncomment pra ver
+    print('afd1:')
     pprint(afd1.__dict__)
-    # pprint(afd2.__dict__)
-    # pprint(afd3.__dict__)
+
+    print('\nafd2:')
+    pprint(afd2.__dict__)
+
+    print('\nafd3:')
+    pprint(afd3.__dict__)
 
     # print('\n===================================================\n')
 
