@@ -292,6 +292,10 @@ def main():
     print('\nafd3:')
     pprint(afd3.__dict__)
 
+    print('\nafd_union:')
+    afd_union = lex.afd_union(afd1, afd2, afd3)
+    pprint(afd_union.__dict__)
+    
     # print('\n===================================================\n')
 
     # teste de uniao com os afds da figura 3.35 no livro do Aho
