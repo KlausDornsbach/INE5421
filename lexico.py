@@ -39,55 +39,6 @@ class Automaton():
     def read_file():
         pass
 
-class SyntaxTree():
-    # a arvore tem nodos, cada nodo com 2 nodos filhos
-    # um nodo pode ter os seguintes simbolos: 
-    # -definicao regular
-    # operacao: *?|.
-    # quando é encontrado () na entrada, ponteiro para
-    # pai é setado 
-    class Node():
-        def __init__(self, symbol, c1=None, c2=None, father=None):
-            self.c1 = c1
-            self.c2 = c2
-            self.symbol = symbol
-        
-    # a arvore de sintaxe recebe um dicionario
-    # que mapeia o nome de definicoes regulares 
-    # para simbolos, esses simbolos podem ser
-    # definicoes regulares com simbolos internos
-    def __init__(self, expression, dictionaries):
-        expression.append('#')
-        # cria arvore
-        # descobre nullable, lastpos, nextpos e followpos
-        # cria automato
-        # self.automaton = Automaton()
-        pass
-    # usado na definicao de tokens, ex.:
-    # token -> id : letter(letter|digit)*
-    def parse_token_definition(self, token):
-        pass
-
-    def create_tree(self, expression):
-        i = len(expression) - 1     # comeco no fim
-        end = Node('#')
-        root = Node('.', None, end)
-        father = root
-        while i > -1:
-            new = Node(expression[i])
-            if expression[i] in {'?', '*', '|', ')', '('}:
-                # finds special character
-                if expression[i] == '*':
-                    pass
-                pass
-            else: # finds a leaf
-                concat_node = Node('.', new, father.c1)
-                father.c1 = concat_node
-                father = new
-            i -= i
-        pass
-
-
 class Lexico():
     # transformar gramatica livre de contexto
     # em um autômato que nos permita reconhecer
