@@ -116,7 +116,7 @@ class Automaton():
             print(f'{a}', end = ' | ')
         for st in states:
             print(f'\n{st}', end = ' | ')
-            for a in alphabet:
+            for a in sorted(alphabet):
                 if (st, a) in transitions.keys():
                     print(f'{transitions[(st, a)]}', end = ' | ')
                 else:
