@@ -125,23 +125,37 @@ class Automaton():
         # para transiçoes com os indices numericos dos estados
         transitions = self.convert_transitions(states_map, d_transitions)
 
-        # # só pra validacao, se quiser ver, uncomment        
-        print('\ntransitions table:', end = '\n\n  |  ')
-        for a in alphabet:
-            print(f'{a}', end = '  |  ')
-        for st in states:
-            print(f'\n{st}', end = ' | ')
-            for a in alphabet:
-                if (st, a) in transitions.keys():
-                    print(f'{transitions[(st, a)]}', end = ' | ')
-                else:
-                    print(' - ', end = ' | ') # sem transição            
+        # # só pra validacao, se quiser ver, uncomment    
+        # print('\ntransitions table:', end = '\n\n  | ')
+        # for a in sorted(alphabet):
+        #     print(f'{a}', end = ' | ')
+        # for st in states:
+        #     print(f'\n{st}', end = ' | ')
+        #     for a in sorted(alphabet):
+        #         if (st, a) in transitions.keys():
+        #             print(f'{transitions[(st, a)]}', end = ' | ')
+        #         else:
+        #             print('-', end = ' | ') # sem transição            
         
-        print(f'\n\ninitial: {initial_D.label}')
-        print('finals:', final_states)
-        
+        # print(f'\n\ninitial: {initial_D.label}')
+        # print('finals:', final_states)
         return (states, final_states, transitions)
 
+    def print_automaton(self):
+                # # só pra validacao, se quiser ver, uncomment        
+        print('\ntransitions table:', end = '\n\n  | ')
+        for a in sorted(self.alphabet):
+            print(f'{a}', end = ' | ')
+        for st in self.states:
+            print(f'\n{st}', end = ' | ')
+            for a in sorted(self.alphabet):
+                if (st, a) in self.transitions.keys():
+                    print(f'{self.transitions[(st, a)]}', end = ' | ')
+                else:
+                    print('-', end = ' | ') # sem transição            
+        
+        print(f'\n\ninitial: {self.init_state}')
+        print('finals:', self.final_states)
 
     '''
     função que converte as d_transitions do algoritmo
