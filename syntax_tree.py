@@ -394,12 +394,12 @@ def main():
     # exemplo aho figura 3.35
     # regex = 'a'
     # regex = 'abb'
-    # regex = 'a*b+'
+    regex = 'a*b+'
 
     print('Input regex: ', regex, '\n')
 
     # define reg_defs
-    lex = lexico.Lexico()
+    lex = lexico.Lexico([regex])
     reg_defs_simple = dict()
     (a, symbols_a)= lex.parse_regular_definition('a : [a]')
     (b, symbols_b)= lex.parse_regular_definition('b : [b]')
@@ -407,7 +407,7 @@ def main():
     reg_defs_simple[b] = symbols_b
 
 
-    regex = parse_regex(regex, reg_defs_simple)
+    regex = parse_regex(regex, reg_defs_simple, {'a','b'})
     print('Parsed regex: ', regex, '\n')
 
     syntax_tree = build_ST(regex, reg_defs_simple)
@@ -425,7 +425,7 @@ def main():
     #     print('follow_pos:', i.follow_pos) 
 
     # buildo automato
-    auto = automaton.Automaton(syntax_tree, leaf_list)
+    auto = automaton.build_automaton(syntax_tree, leaf_list)
 
 if __name__ == '__main__':
     main()
