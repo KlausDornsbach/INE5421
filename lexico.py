@@ -281,49 +281,49 @@ def main():
     
     print('\n___________________/\/\/\/\/\/\/\/\/\/\/\/\/\______________________\n')
     
-    # parse das ERs
-    re1 = syntax_tree.parse_regex('a', {'a':'a', 'b':'b'}, {'a'})
-    re2 = syntax_tree.parse_regex('abb', {'a':'a', 'b':'b'}, {'a','b'})
-    re3 = syntax_tree.parse_regex('a*bb*', {'a':'a', 'b':'b'}, {'a','b'})
+    # # parse das ERs
+    # re1 = syntax_tree.parse_regex('a', {'a':'a', 'b':'b'}, {'a'})
+    # re2 = syntax_tree.parse_regex('abb', {'a':'a', 'b':'b'}, {'a','b'})
+    # re3 = syntax_tree.parse_regex('a*bb*', {'a':'a', 'b':'b'}, {'a','b'})
 
-    # construcao das arvores sintaticas para cada ER
-    st1 = syntax_tree.build_ST(re1, {'a'})
-    st2 = syntax_tree.build_ST(re2, {'a','b'})
-    st3 = syntax_tree.build_ST(re3, {'a','b'})
+    # # construcao das arvores sintaticas para cada ER
+    # st1 = syntax_tree.build_ST(re1, {'a'})
+    # st2 = syntax_tree.build_ST(re2, {'a','b'})
+    # st3 = syntax_tree.build_ST(re3, {'a','b'})
 
-    # print das arvores, uncomment para ver
-    print_tree(st1)
-    print_tree(st2)
-    print_tree(st3)
+    # # print das arvores, uncomment para ver
+    # print_tree(st1)
+    # print_tree(st2)
+    # print_tree(st3)
 
-    # computa nullable, firstpos, lastpos, followpos
-    (st1, leaf_list1) = syntax_tree.specify_nodes(st1, {'a'})
-    (st2, leaf_list2) = syntax_tree.specify_nodes(st2, {'a','b'})
-    (st3, leaf_list3) = syntax_tree.specify_nodes(st3, {'a','b'})
+    # # computa nullable, firstpos, lastpos, followpos
+    # (st1, leaf_list1) = syntax_tree.specify_nodes(st1, {'a'})
+    # (st2, leaf_list2) = syntax_tree.specify_nodes(st2, {'a','b'})
+    # (st3, leaf_list3) = syntax_tree.specify_nodes(st3, {'a','b'})
 
-    # gera os afds para cada ER
-    afd1 = automaton.Automaton(st1, leaf_list1)
-    afd2 = automaton.Automaton(st2, leaf_list2)
-    afd3 = automaton.Automaton(st3, leaf_list3)
+    # # gera os afds para cada ER
+    # afd1 = automaton.Automaton(st1, leaf_list1)
+    # afd2 = automaton.Automaton(st2, leaf_list2)
+    # afd3 = automaton.Automaton(st3, leaf_list3)
 
-    # printa as estruturas dos afds, uncomment pra ver
-    lex = Lexico([])
-    print('afd1:')
-    pprint(afd1.__dict__)
+    # # printa as estruturas dos afds, uncomment pra ver
+    # lex = Lexico([])
+    # print('afd1:')
+    # pprint(afd1.__dict__)
 
-    print('\nafd2:')
-    pprint(afd2.__dict__)
+    # print('\nafd2:')
+    # pprint(afd2.__dict__)
 
-    print('\nafd3:')
-    pprint(afd3.__dict__)
+    # print('\nafd3:')
+    # pprint(afd3.__dict__)
 
-    print('\nafnd_union:')
-    afnd_union = lex.afd_union(afd1, afd2, afd3)
-    pprint(afnd_union.__dict__)
+    # print('\nafnd_union:')
+    # afnd_union = lex.afd_union(afd1, afd2, afd3)
+    # pprint(afnd_union.__dict__)
     
-    print('\nafd_union:')
-    afd_union = lex.det_automaton(afnd_union)
-    pprint(afd_union.__dict__)
+    # print('\nafd_union:')
+    # afd_union = lex.det_automaton(afnd_union)
+    # pprint(afd_union.__dict__)
 
     # print('\n===================================================\n')
 
@@ -368,9 +368,9 @@ def main():
     # pprint(afd_uniao.__dict__)
 
     # print('\nTeste da execução sobre algumas palavras...')
-    words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
-    for word in words:
-        print(f'run({word}) = {afd_uniao.run(word)}')
+    # words = ('a','aa','aaa','ab','aaab','abbbb','aaabbbb')
+    # for word in words:
+    #     print(f'run({word}) = {afd_uniao.run(word)}')
     
 
 if __name__ == '__main__':
