@@ -1,6 +1,8 @@
 from collections import deque
 
-import syntax_tree
+## tive que trocar aqui pra funcionar os imports
+import model.syntax_tree as syntax_tree
+# import syntax_tree
 
 # definimos classe de automatos, podem ser
 # deterministicos ou não, epsilon transicoes

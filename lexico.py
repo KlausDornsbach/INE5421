@@ -1,17 +1,30 @@
 from pprint import pprint  # para printar os atributos
 
-from print_tree import print_tree
-import automaton
-import syntax_tree
+## tive que trocar aqui pra funcionar os imports
+from model.print_tree import print_tree
+import model.automaton as automaton
+import model.syntax_tree as syntax_tree
+
+# import print_tree
+# import automaton
+# import syntax_tree
 
 class Lexico():
+    # modificação desse construtor, para poder 
+    # inicializar o Lexico no controlador da aplicação
+    def __init__(self):
+        self.reg_defs = dict()
+        self.alphabet = set()
+        self.analyzer = None # vai ser o afd final apos todo o processo
+
+
     '''
     parametro expression é uma lista de strings que são
     definicoes regulares
     :attr reg_def: dicionario[key] -> {set de simbolos}
     :attr alphabet: set da uniao de simbolos definidos
     '''
-    def __init__(self, expressions):
+    def generate_regdefs_alphabet(self, expressions):
         reg_defs = dict()
         alphabet = set()
         for i in expressions:
@@ -51,54 +64,57 @@ class Lexico():
                 print('parse error! please input regular definition in correct format')
         return (key, set(alphabet))
     
-'''
-funcao make automatiza transformacao ER->AFD->Uniao->Determinizacao
-:param reg_defs: lista de str com definicoes regulares 
-:param tokens: lista de str com definicoes de tokens
-:param verbose: printar ou nao as informacoes ao longo do processo
-:return automato_completo: Automato pronto para ler entradas de texto
-'''
-def make(reg_defs: list, raw_tokens: list, verbose: bool=True):
-    lex = Lexico(reg_defs)
+    '''
+    funcao make automatiza transformacao ER->AFD->Uniao->Determinizacao
+    :param reg_defs: lista de str com definicoes regulares 
+    :param tokens: lista de str com definicoes de tokens
+    :param verbose: printar ou nao as informacoes ao longo do processo
+    :return automato_completo: Automato pronto para ler entradas de texto
+    '''
+    def make(self, reg_defs: list, raw_tokens: list, verbose: bool=True):
+        # lex = Lexico(reg_defs)
+        self.generate_regdefs_alphabet(reg_defs)
 
-    automata = []
-    regexes = []
+        automata = []
+        regexes = []
 
-    for rt in range(len(raw_tokens)):
-        regexes.append(syntax_tree.parse_regex(raw_tokens[rt], lex.reg_defs, lex.alphabet))
-        st = syntax_tree.build_ST(regexes[rt], lex.alphabet)
-        (st, leaf_list) = syntax_tree.specify_nodes(st, lex.alphabet)
-        # print(st)
-        # print(leaf_list)
-        # print(lex.alphabet)
-        afd = automaton.build_automaton(st, leaf_list)
-        # print(afd.init_state)
-        # print(afd.states)
-        # print(afd.final_states)
-        # print(afd.transitions)
-        # print(afd.alphabet)
-        if verbose:
-            print('\n============================\n')
-            print(f'raw token: {raw_tokens[rt]}')
-            print(f'derived regex: {regexes[rt]}')
-            print(f'generated tree:')
-            print_tree(st)
-            print('automaton:')
-            pprint(afd.__dict__)
-            # afd.print_automaton()
+        for rt in range(len(raw_tokens)):
+            regexes.append(syntax_tree.parse_regex(raw_tokens[rt], self.reg_defs, self.alphabet))
+            st = syntax_tree.build_ST(regexes[rt], self.alphabet)
+            (st, leaf_list) = syntax_tree.specify_nodes(st, self.alphabet)
+            # print(st)
+            # print(leaf_list)
+            # print(lex.alphabet)
+            afd = automaton.build_automaton(st, leaf_list)
+            # print(afd.init_state)
+            # print(afd.states)
+            # print(afd.final_states)
+            # print(afd.transitions)
+            # print(afd.alphabet)
+            if verbose:
+                print('\n============================\n')
+                print(f'raw token: {raw_tokens[rt]}')
+                print(f'derived regex: {regexes[rt]}')
+                print(f'generated tree:')
+                print_tree(st)
+                print('automaton:')
+                pprint(afd.__dict__)
+                # afd.print_automaton()
+            
+            automata.append(afd)
         
-        automata.append(afd)
-    
-    # union
-    afnd_uniao = automaton.union(*automata)
-    
-    # determinization
-    afd_uniao = automaton.determinization(afnd_uniao)
-    if verbose:
-        print('\n====================================\nunion\n====================================\n')
-        pprint(afnd_uniao.__dict__)
-        print('\n====================================\ndeterminizado\n====================================\n')
-        pprint(afd_uniao.__dict__)
+        # union
+        afnd_uniao = automaton.union(*automata)
+        
+        # determinization
+        afd_uniao = automaton.determinization(afnd_uniao)
+        if verbose:
+            print('\n====================================\nunion\n====================================\n')
+            pprint(afnd_uniao.__dict__)
+            print('\n====================================\ndeterminizado\n====================================\n')
+            pprint(afd_uniao.__dict__)
+
+        self.analyzer = afd_uniao
 
     
 
@@ -111,7 +127,8 @@ def main():
     reg_def1 = 'a : [a]'
     reg_def2 = 'b : [b]'
     # tenho que definir cada simbolo dos tokens entre chaves  
-    make([reg_def1, reg_def2], ['{a}', '{a}{b}{b}', '{a}*{b}{b}*'])
+    lex = Lexico()
+    lex.make([reg_def1, reg_def2], ['{a}', '{a}{b}{b}', '{a}*{b}+'])
     
     print('\n___________________/\/\/\/\/\/\/\/\/\/\/\/\/\______________________\n')
     

@@ -1,7 +1,11 @@
+## tive que trocar aqui pra funcionar os imports
+from model.print_tree import print_tree
+import model.automaton as automaton
+import model.lexico as lexico
 
-from print_tree import print_tree
-import automaton
-import lexico
+# from print_tree import print_tree
+# import automaton
+# import lexico
 
 ## por enquanto a arvore consiste apenas de nodos ligados
 class Node:
@@ -398,34 +402,35 @@ def main():
 
     print('Input regex: ', regex, '\n')
 
-    # define reg_defs
-    lex = lexico.Lexico([regex])
-    reg_defs_simple = dict()
-    (a, symbols_a)= lex.parse_regular_definition('a : [a]')
-    (b, symbols_b)= lex.parse_regular_definition('b : [b]')
-    reg_defs_simple[a] = symbols_a
-    reg_defs_simple[b] = symbols_b
+    # AQUI: alteracao no lexico.py quebrou aqui
+    # # define reg_defs
+    # lex = lexico.Lexico([regex])
+    # reg_defs_simple = dict()
+    # (a, symbols_a)= lex.parse_regular_definition('a : [a]')
+    # (b, symbols_b)= lex.parse_regular_definition('b : [b]')
+    # reg_defs_simple[a] = symbols_a
+    # reg_defs_simple[b] = symbols_b
 
 
-    regex = parse_regex(regex, reg_defs_simple, {'a','b'})
-    print('Parsed regex: ', regex, '\n')
+    # regex = parse_regex(regex, reg_defs_simple, {'a','b'})
+    # print('Parsed regex: ', regex, '\n')
 
-    syntax_tree = build_ST(regex, reg_defs_simple)
-    print_tree(syntax_tree)
+    # syntax_tree = build_ST(regex, reg_defs_simple)
+    # print_tree(syntax_tree)
     
-    # buildo nullable, lpos, fpos, followpos
-    (syntax_tree, leaf_list) = specify_nodes(syntax_tree, reg_defs_simple)
+    # # buildo nullable, lpos, fpos, followpos
+    # (syntax_tree, leaf_list) = specify_nodes(syntax_tree, reg_defs_simple)
     
-    # VALIDACAO, se quiser ver, uncomment
-    # print_recursively(syntax_tree)
-    # print('----------------------------')
-    # # testando followpos
-    # for i in leaf_list:
-    #     print('node:', i.value, i.first_pos)
-    #     print('follow_pos:', i.follow_pos) 
+    # # VALIDACAO, se quiser ver, uncomment
+    # # print_recursively(syntax_tree)
+    # # print('----------------------------')
+    # # # testando followpos
+    # # for i in leaf_list:
+    # #     print('node:', i.value, i.first_pos)
+    # #     print('follow_pos:', i.follow_pos) 
 
-    # buildo automato
-    auto = automaton.build_automaton(syntax_tree, leaf_list)
+    # # buildo automato
+    # auto = automaton.build_automaton(syntax_tree, leaf_list)
 
 if __name__ == '__main__':
     main()
