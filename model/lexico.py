@@ -55,15 +55,39 @@ class Lexico():
             end_key = expression.find(':')
         key = expression[0:end_key]
         # string.find(value, start, end)
-        index = expression.find('[', end_key) + 1   
+        index = expression.find('[', end_key) + 1
         part = expression[index:-1]
-        alphabet = part.split(',')
+        if len(part) > 1 and part[1] == '-':
+            alphabet = self.process_abreviated_reg_def(part)
+        else:
+            alphabet = part.split(',')
         if alphabet == None:
             alphabet = part.split('|')
             if alphabet == None:
-                print('parse error! please input regular definition in correct format')
+                raise Exception('parse error! please input regular definition in correct format')
         return (key, set(alphabet))
+
+    '''
+    método para gerar lista de simbolos para definicoes regulares
+    no formato abreviado (ex: 'a-z') a iterando sobre o codigo ASC
+    dos caracteres. utilizado em parse_regular_definitions.
+    :param expression: ER da definicao regular 
+    :return: lista contendo os simbolos da def regular
+    '''
+    def process_abreviated_reg_def(self, expression: str):
+        if expression == '0-9':
+            return [chr(i) for i in range(ord('0'), ord('9') + 1)]
+
+        elif expression == 'a-z':
+            return [chr(i) for i in range(ord('a'), ord('z') + 1)]
     
+        elif expression in {'a-zA-Z', 'A-Za-z'}:
+            return [chr(i) for i in range(ord('a'), ord('z') + 1)] + [chr(i) for i in range(ord('A'), ord('Z') + 1)]
+
+        else:
+            raise Exception('parse error! please input regular definition in correct format')
+
+
     '''
     funcao make automatiza transformacao ER->AFD->Uniao->Determinizacao
     :param reg_defs: lista de str com definicoes regulares 
