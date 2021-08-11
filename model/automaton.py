@@ -108,7 +108,7 @@ def union(*afds):
     n_trans = {(n_init,'&'): set()}  # novas transicoes
     n_alphabet = set()  # novo alfabeto
 
-    i = n_init
+    i = n_init + 1
     for afd in afds:
         # renomeia os estados de modo a evitar
         # que haja colisoes entre os nomes
