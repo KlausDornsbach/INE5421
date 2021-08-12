@@ -15,8 +15,10 @@ class Automaton():
     :attr transitions: dicionario de transicoes no formato:
         (estado, simbolo) : {estado1, estado2, ...}
     :attr final_states: conjunto de estados finais
+    :attr final_states: dicionario dos estados finais mapeados para
+        as definicoes regulares que representam
     '''
-    def __init__(self, alphabet=set(), states=set(), init_state=None, transitions={}, final_states=set()):
+    def __init__(self, alphabet=set(), states=set(), init_state=None, transitions={}, final_states=dict()):
         self.alphabet = alphabet
         self.states = states
         self.transitions = transitions
@@ -40,7 +42,8 @@ class Automaton():
             next_state = self.transitions.get((current_state,c))
             if next_state is None: return False
             current_state = next_state
-        return current_state in self.final_states
+        # return current_state in self.final_states
+        return current_state in self.final_states.keys()
 
     # renomeia os estados com numeros comecando por "i"
     # em todas as estruturas e atributos,
@@ -74,6 +77,13 @@ class Automaton():
         # renomeia os estados em todas as estruturas
         self.states = set_new_names
         self.init_state = names.get(self.init_state)
+        
+        # self.final_states = {names.get(fs) for fs in self.final_states}
+        new_finals = {}
+        for s, rd_id in self.final_states.items():
+            new_finals[s] = rd_id
+        self.final_states = new_finals
+
         self.final_states = {names.get(fs) for fs in self.final_states}
         new_trans = {}
         for (s,a),t in self.transitions.items():
@@ -95,7 +105,8 @@ class Automaton():
                     print('-', end = ' | ') # sem transição            
         
         print(f'\n\ninitial: {self.init_state}')
-        print('finals:', self.final_states)
+        # print('finals:', self.final_states)
+        print('finals:', self.final_states.keys())
 
 
 # uniao de afds
@@ -104,10 +115,12 @@ class Automaton():
 def union(*afds):
     n_init = 0  # novo estado inicial
     n_states = {n_init}  # novos estados
-    n_final = set()  # novos estados finais
+    # n_final = set()  # novos estados finais
+    n_final = dict()  # novos estados finais
     n_trans = {(n_init,'&'): set()}  # novas transicoes
     n_alphabet = set()  # novo alfabeto
 
+    # i = n_init + 1
     i = n_init + 1
     for afd in afds:
         # renomeia os estados de modo a evitar
@@ -118,7 +131,7 @@ def union(*afds):
         # atualiza as estruturas do novo automato
         # com aquelas de cada um dos afds
         n_states.update(afd.states)
-        n_final.update(afd.final_states)
+        n_final.update(afd.final_states) # acho q aqui nao da problema trocar de set -> dict TODO
         n_trans.update(afd.transitions)
         n_alphabet.update(afd.alphabet)
         # insere a epsilon transicao partindo do novo
@@ -166,7 +179,8 @@ def determinization(afnd):
 
     d_init = epsilon_closure(afnd.init_state)  # novo estado inicial
     d_states = {d_init}  # novos estados
-    d_final = set()  # novos estados finais
+    # d_final = set()  # novos estados finais
+    d_final = dict()  # novos estados finais
     d_trans = dict()  # novas transicoes
 
     # computa todos os novos estados e transicoes
@@ -180,9 +194,14 @@ def determinization(afnd):
             d_trans[(T,a)] = {u} # coloquei estado dentro de conjunto, para funcionar o teste isAFND em run()
     
     # computa os novos estados finais
-    for s in d_states:
-        if s & afnd.final_states:
-            d_final.add(s)
+    # for s in d_states:
+    #     if s & afnd.final_states:
+    #         d_final.add(s)
+    for s_set in d_states:
+        for s in s_set:
+            if s in afnd.final_states.keys():
+                "AQUI VAI DAR PROBLEMA se tiver um estado final que mapeia pra mais de um ID de reg def!!"
+                d_final[s] = afnd.final_states[s] # adicionar ID no conjunto de ids do estado final
 
     # afd obtido apos a determinizacao
     afd = Automaton(afnd.alphabet, d_states, d_init, d_trans, d_final)
@@ -192,10 +211,15 @@ def determinization(afnd):
 
 '''
 constroi automato a partir de arvore de sintaxe
-e lista de folhas, é o algoritmo Dstates do
-slide
+e lista de folhas (algoritmo Dstates)
+:param sa_root: nodo raiz da arvore sintatica
+:param leaf_list: nodos folha (simbolos)
+:param rd_id: identificador da definiçao regular
+            sobre a qual o automato está sendo construido
+:return: um estado não marcado, caso todos 
+    estejam marcados, retorna qualquer
 '''
-def build_automaton(sa_root: syntax_tree.Node, leaf_list: list):
+def build_automaton(sa_root: syntax_tree.Node, leaf_list: list, rd_id: str):
     '''
     :param states: estados do automato
     :return: um estado não marcado, caso todos 
@@ -267,9 +291,6 @@ def build_automaton(sa_root: syntax_tree.Node, leaf_list: list):
                 if leaf_list[state_index].value == a:
                     u = u | leaf_list[state_index].follow_pos
             
-            # AQUIII KLAUS, mudei a logica, caso u seja vazio
-            # tratar caso de transição que nao vai 
-            # para lugar nenhum (u vazio) (???)
             if u:
                 d_transitions[(s.label, a)] = set()
 
@@ -294,9 +315,12 @@ def build_automaton(sa_root: syntax_tree.Node, leaf_list: list):
     ## converter as 'd_transiçoes' do algoritmo ER->AFD
     # para transiçoes com os indices numericos dos estados
     transitions = convert_transitions(states_map, d_transitions)        
-    
+    final_dict = {}
+    for s in final_states:
+        final_dict[s] = rd_id
     # gera o automato
-    automaton = Automaton(alphabet, states, init_state, transitions, final_states)
+    # automaton = Automaton(alphabet, states, init_state, transitions, final_states)
+    automaton = Automaton(alphabet, states, init_state, transitions, final_dict)
 
     # só pra validacao, se quiser ver, uncomment
     # automaton.print_automaton()

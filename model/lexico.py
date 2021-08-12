@@ -24,7 +24,7 @@ class Lexico():
     :attr reg_def: dicionario[key] -> {set de simbolos}
     :attr alphabet: set da uniao de simbolos definidos
     '''
-    def generate_regdefs_alphabet(self, expressions):
+    def create_regdefs_alphabet(self, expressions):
         reg_defs = dict()
         alphabet = set()
         for i in expressions:
@@ -42,8 +42,26 @@ class Lexico():
     
     # ler um texto e dar output em uma lista:
     # padrao, lexema, indice no arquivo
-    def create_symbol_table(self, file):
+    def create_symbol_table(self, text):
         pass
+
+    # Identificar as tokens pelo seu identificador,
+    # em um dicionario.
+    # vai servir para indicar na hora de criar cada
+    # automato a qual padrao de token ele "traduz"
+    # para depois no automato unido, saber quais
+    # estados representam qual token!
+    # mapeamento é bem simples:
+    # raw_token -> 'nome_do_token' : expressao q define o token
+    def identify_tokens(self, raw_tokens) -> dict:
+        tokens = dict()
+        for rt in raw_tokens:
+            split = rt.split(":")
+            key = split[0].strip()
+            val = split[1].strip()
+            tokens[key] = val
+
+        return tokens
 
     # parseio a expressao, coloco nome associado
     # a uma lista de simbolos usados na definicao
@@ -97,19 +115,27 @@ class Lexico():
     '''
     def make(self, reg_defs: list, raw_tokens: list, verbose: bool=True):
         # lex = Lexico(reg_defs)
-        self.generate_regdefs_alphabet(reg_defs)
+        self.create_regdefs_alphabet(reg_defs)
+        tokens = self.identify_tokens(raw_tokens)
 
         automata = []
         regexes = []
 
-        for rt in range(len(raw_tokens)):
-            regexes.append(syntax_tree.parse_regex(raw_tokens[rt], self.reg_defs, self.alphabet))
-            st = syntax_tree.build_ST(regexes[rt], self.alphabet)
+        # for rt in range(len(raw_tokens)):
+            # regexes.append(syntax_tree.parse_regex(raw_tokens[rt], self.reg_defs, self.alphabet))
+            # st = syntax_tree.build_ST(regexes[rt], self.alphabet)
+            
+        for id, rtk in tokens.items():
+            regex = syntax_tree.parse_regex(rtk, self.reg_defs, self.alphabet)
+            st = syntax_tree.build_ST(regex, self.alphabet)
+
             (st, leaf_list) = syntax_tree.specify_nodes(st, self.alphabet)
             # print(st)
             # print(leaf_list)
             # print(lex.alphabet)
-            afd = automaton.build_automaton(st, leaf_list)
+            afd = automaton.build_automaton(st, leaf_list, id) # passa o identificador da exp regular
+            
+            # afd = automaton.build_automaton(st, leaf_list)
             # print(afd.init_state)
             # print(afd.states)
             # print(afd.final_states)
@@ -117,8 +143,8 @@ class Lexico():
             # print(afd.alphabet)
             if verbose:
                 print('\n============================\n')
-                print(f'raw token: {raw_tokens[rt]}')
-                print(f'derived regex: {regexes[rt]}')
+                print(f'raw token: {rtk}')
+                print(f'derived regex: {regex}')
                 print(f'generated tree:')
                 print_tree(st)
                 print('automaton:')
@@ -128,7 +154,11 @@ class Lexico():
             automata.append(afd)
         
         # union
+        print('\n============================\n')
+        print('union automaton:')
         afnd_uniao = automaton.union(*automata)
+        pprint(afnd_uniao.__dict__)
+
         
         # determinization
         afd_uniao = automaton.determinization(afnd_uniao)
