@@ -32,6 +32,7 @@ class Automaton():
     # determina se a palavra foi reconhecida pelo automato
     # obs.: nao serve para simular um afnd, e portanto
     # deve-se determinizar primeiro
+    # caso o lexema seja aceito, retorna seu token
     def run(self, word):
         # checa se eh AFD antes de simular
         if self.isAFND(): return
@@ -41,9 +42,7 @@ class Automaton():
             next_state = self.transitions.get((current_state,c))
             if next_state is None: return False
             current_state = next_state
-            
-        [s] = current_state
-        return s in self.final_states.keys()
+        return self.final_states.get(*current_state)
 
     # renomeia os estados com numeros comecando por "i"
     # em todas as estruturas e atributos,
