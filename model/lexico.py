@@ -18,6 +18,7 @@ class Lexico():
         self.alphabet = set()
         self.analyzer = None # vai ser o afd final apos todo o processo
         self.symbols_table = dict()
+        self.tokens = []
 
     '''
     parametro expression é uma lista de strings que são
@@ -59,35 +60,32 @@ class Lexico():
             #     self.symbols_table[k[0]] = k[2]
             self.symbols_table[k[0]] = k[2]
 
+    # checa se o lexema ja esta na TS
+    # se estiver, retorna True e seu token
+    # senao, executa o AFD sobre o lexema
+    def check(self, lexeme):
+        if lexeme in self.symbols_table:
+            return True, self.symbols_table.get(lexeme)
+        return self.analyzer.run(lexeme)
+
     # faz a analise lexica
     def analyze(self, text):
         begin, forward = 0, 1
         while begin < len(text):
             lexeme = text[begin]
-            if lexeme in self.symbols_table:
-                was_valid = True
-                token = self.symbols_table.get(lexeme)
-            else:
-                was_valid, token = self.analyzer.run(lexeme)
+            was_valid, token = self.check(lexeme)
             while forward < len(text):
                 c = text[forward]
                 if c not in whitespace:
                     lexeme += c
-                if lexeme in self.symbols_table:
-                    is_valid = True
-                    token = self.symbols_table.get(lexeme)
-                else:
-                    is_valid, token = self.analyzer.run(lexeme)
+                is_valid, token = self.check(lexeme)
                 if was_valid and not is_valid: break
                 was_valid = is_valid
                 forward += 1
             lexeme = lexeme[:-1]
-            if lexeme in self.symbols_table:
-                is_valid = True
-                token = self.symbols_table.get(lexeme)
-            else:
-                is_valid, token = self.analyzer.run(lexeme)
+            is_valid, token = self.check(lexeme)
             self.symbols_table[lexeme] = token
+            self.tokens.append((token, lexeme, begin))
             begin = forward
             forward += 1
     
