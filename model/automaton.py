@@ -41,8 +41,9 @@ class Automaton():
             next_state = self.transitions.get((current_state,c))
             if next_state is None: return False
             current_state = next_state
-        # return current_state in self.final_states
-        return current_state in self.final_states.keys()
+            
+        [s] = current_state
+        return s in self.final_states.keys()
 
     # renomeia os estados com numeros comecando por "i"
     # em todas as estruturas e atributos,
@@ -110,12 +111,10 @@ class Automaton():
 def union(*afds):
     n_init = 0  # novo estado inicial
     n_states = {n_init}  # novos estados
-    # n_final = set()  # novos estados finais
     n_final = dict()  # novos estados finais
     n_trans = {(n_init,'&'): set()}  # novas transicoes
     n_alphabet = set()  # novo alfabeto
 
-    # i = n_init + 1
     i = n_init + 1
     for afd in afds:
         # renomeia os estados de modo a evitar
@@ -126,7 +125,7 @@ def union(*afds):
         # atualiza as estruturas do novo automato
         # com aquelas de cada um dos afds
         n_states.update(afd.states)
-        n_final.update(afd.final_states) # acho q aqui nao da problema trocar de set -> dict TODO
+        n_final.update(afd.final_states)
         n_trans.update(afd.transitions)
         n_alphabet.update(afd.alphabet)
         # insere a epsilon transicao partindo do novo
@@ -239,16 +238,6 @@ def build_automaton(sa_root: syntax_tree.Node, leaf_list: list, rd_id: str):
                 return True
         return False
 
-    '''
-    função que converte as d_transitions do algoritmo
-    ER -> AFD para transições com os estados pelo nº do estado
-    '''
-    def convert_transitions(states_map, d_transitions):
-        transitions = dict()
-        for k, v in d_transitions.items():
-            transitions[k] = states_map[frozenset(v)]
-
-        return transitions
 
     # determina o conjunto de simbolos do alfabeto
     alphabet = {s.value for s in leaf_list}
@@ -308,14 +297,15 @@ def build_automaton(sa_root: syntax_tree.Node, leaf_list: list, rd_id: str):
 
         s = find_unmarked(d_states)
 
-    ## converter as 'd_transiçoes' do algoritmo ER->AFD
+    # converter as 'd_transiçoes' do algoritmo ER->AFD
     # para transiçoes com os indices numericos dos estados
-    transitions = convert_transitions(states_map, d_transitions)        
-    final_dict = {}
-    for s in final_states:
-        final_dict[s] = rd_id
+    transitions = {k : states_map[frozenset(v)] for k,v in d_transitions.items()}
+    
+    # mapear estados finais para o identificador da definiçao
+    # regular que gerou o automaato 
+    final_dict = {s: rd_id for s in final_states}
+
     # gera o automato
-    # automaton = Automaton(alphabet, states, init_state, transitions, final_states)
     automaton = Automaton(alphabet, states, init_state, transitions, final_dict)
 
     # só pra validacao, se quiser ver, uncomment

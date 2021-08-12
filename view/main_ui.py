@@ -13,6 +13,7 @@ class MainUI(QWidget):
         self.simulator_ui = SimulatorUI(self, app_control, size)
         self.reg_def_text = QTextEdit()
         self.token_text = QTextEdit()
+        self.keywords_text = QTextEdit()
         self.simulation_btn = QPushButton("Simulador")
         self.initUI(size)
 
@@ -34,22 +35,28 @@ class MainUI(QWidget):
 
         reg_def = self.create_text_area('Definições Regulares', self.reg_def_text)
         tokens = self.create_text_area('Tokens', self.token_text)
+        keywords = self.create_text_area('Palavras Reservadas (Tokens especiais)', self.keywords_text)
         
         ###################### TESTE ######################
         # mesmo caso de teste que está 
         # sendo feito em lexico.py 
         # (simula os exemplos como um texto unico)
-        reg_def_example = 'a : [a]\nb : [b]'
-        tokens_example = 'X : {a}\nY : {a}{b}{b}\nZ :  {a}*{b}+' ## TODO: mudar notação dos tokens para 'ID : {L}' 
-        self.reg_def_text.setText(reg_def_example)
-        self.token_text.setText(tokens_example)
+        reg_def_ex = 'a : [a]\nb : [b]'
+        tokens_ex = 'X : {a}\nY : {a}{b}{b}\nZ :  {a}*{b}+'
+        keyword_ex = 'bbb = Z : ""bbb""\nabb = Y : ""abb""'
+        self.reg_def_text.setText(reg_def_ex)
+        self.token_text.setText(tokens_ex)
+        self.keywords_text.setText(keyword_ex)
         ###################### TESTE ######################
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([300, 300])
-        splitter.addWidget(reg_def)
-        splitter.addWidget(tokens)
+        ss = QSplitter(Qt.Vertical)
+        ss.addWidget(reg_def)
+        ss.addWidget(tokens)
+        splitter.addWidget(ss)
+        splitter.addWidget(keywords)
         
         hbox = QHBoxLayout()
         hbox.addWidget(splitter)
