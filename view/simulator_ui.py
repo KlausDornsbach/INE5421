@@ -32,6 +32,10 @@ class SimulatorUI(QDialog):
 
     def create_simulator_layout(self) -> QLayout:
         s_code = self.main_UI.create_text_area('Código Fonte', self.scode_text)
+        ###################### TESTE ######################
+        self.scode_text.setText('abb a bbb')
+        ###################### TESTE ######################
+
         s_table = self.create_symbols_table_widget()
         tk_table = self.create_token_list_widget()
 
