@@ -58,6 +58,20 @@ class Lexico():
             #     self.symbols_table[k[0]] = k[2]
             self.symbols_table[k[0]] = k[2]
 
+    # faz a analise lexica
+    def analyze(self, text):
+        begin, forward = 0, 1
+        while begin < len(text):
+            while True:
+                lexeme = text[begin:forward]
+                if not self.analyzer.run(lexeme): break
+                forward += 1
+            lexeme = text[begin:forward-1]
+            token = self.analyzer.run(lexeme)
+            self.symbol_table[lexeme] = token
+            begin = forward
+            forward += 1
+    
     # Identificar as tokens pelo seu identificador,
     # em um dicionario.
     # vai servir para indicar na hora de criar cada
