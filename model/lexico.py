@@ -62,13 +62,16 @@ class Lexico():
     def analyze(self, text):
         begin, forward = 0, 1
         while begin < len(text):
+            lexeme = text[begin]
             while True:
-                lexeme = text[begin:forward]
+                c = text[forward]
+                if c not in whitespace:
+                    lexeme += c
                 if not self.analyzer.run(lexeme): break
                 forward += 1
-            lexeme = text[begin:forward-1]
+            lexeme = lexeme[:-1]
             token = self.analyzer.run(lexeme)
-            self.symbols_table[lexeme] = token
+            self.symbol_table[lexeme] = token
             begin = forward
             forward += 1
     
