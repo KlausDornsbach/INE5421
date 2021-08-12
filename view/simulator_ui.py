@@ -87,9 +87,11 @@ class SimulatorUI(QDialog):
         size = len(entries)
         self.symbols_table.setRowCount(size)
 
-        for i in range(size):
-            self.symbols_table.setItem(i, 0, QTableWidgetItem(entries[i][0]))
-            self.symbols_table.setItem(i, 1, QTableWidgetItem(entries[i][1]))
+        i = 0
+        for k, v in entries.items():
+            self.symbols_table.setItem(i, 0, QTableWidgetItem(k))
+            self.symbols_table.setItem(i, 1, QTableWidgetItem(v))
+            i += 1
 
     def clear_symbols_table(self) -> None:
         self.symbols_table.clearContents()        
@@ -116,8 +118,9 @@ class SimulatorUI(QDialog):
 
     ## recebe uma lista de entradas para a lista de tokens
     # sugestão: entries = Tuple/List (ID, lexema, posição)
+    # TODO ATUALIZAR PARA ADAPTAR A AENTRADA
     def insert_token_list(self, entries) -> None:
-        self.clear_symbols_table()
+        self.clear_token_list()
         size = len(entries)
         self.token_list_table.setRowCount(size)
 

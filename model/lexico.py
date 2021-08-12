@@ -40,11 +40,23 @@ class Lexico():
     def regex_to_afd(self, file):
         pass
     
-    # ler um texto e dar output em uma lista:
-    # padrao, lexema, indice no arquivo
-    def create_symbol_table(self, text):
-        
-        pass
+
+    '''
+    método para inicializar a tabela de simbolos, a
+    partir das palavras reservadas de entrada.
+    para fazer uma validaçao previa, testa se o ID
+    da keyword existe no dicionario das definiçoes regulares
+    :param keywords: lista de tuplas contendo
+    # [0] token da palavra chave 
+    # [1] token "pai" para verificar se faz parte de alguma def reg
+    # [1] lexema da palavra chaveER da definicao regular 
+    :return: lista contendo os simbolos da def regular
+    '''
+    def create_symbol_table(self, keywords: list):
+        for k in keywords:
+            # if k[1] in self.reg_defs.keys():
+            #     self.symbols_table[k[0]] = k[2]
+            self.symbols_table[k[0]] = k[2]
 
     # Identificar as tokens pelo seu identificador,
     # em um dicionario.

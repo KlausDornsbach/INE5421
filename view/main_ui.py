@@ -43,7 +43,7 @@ class MainUI(QWidget):
         # (simula os exemplos como um texto unico)
         reg_def_ex = 'a : [a]\nb : [b]'
         tokens_ex = 'X : {a}\nY : {a}{b}{b}\nZ :  {a}*{b}+'
-        keyword_ex = 'bbb = Z : ""bbb""\nabb = Y : ""abb""'
+        keyword_ex = 'bbb = Z : "bbb"\nabb = Y : "abb"'
         self.reg_def_text.setText(reg_def_ex)
         self.token_text.setText(tokens_ex)
         self.keywords_text.setText(keyword_ex)
@@ -77,5 +77,6 @@ class MainUI(QWidget):
     def start_simulator(self) -> None:
         reg_defs = self.reg_def_text.toPlainText()
         tokens = self.token_text.toPlainText()
-        self.control.start_simulator(reg_defs, tokens)
+        keywords = self.keywords_text.toPlainText()
+        self.control.start_simulator(reg_defs, tokens, keywords)
         self.simulator_ui.exec()
