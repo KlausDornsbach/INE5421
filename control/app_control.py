@@ -42,16 +42,5 @@ class AppControl():
 
     def exec_lexical_analysis(self, source_text: str) -> None:
         self.lex.analyze(source_text)
-
-        ######################## TESTE ########################
-        # exemplo de uma lista de entrada
-        # para a tabela de simbolos (sugestão)
-        st_entry = [
-            ('ID', 'begin', '0'),
-            ('ID', 'while', '10'),
-            ('ID', 'for', '15')
-        ]
-        self.simulator_ui.insert_token_list(st_entry)
+        self.simulator_ui.insert_token_list(self.lex.tokens)
         self.simulator_ui.insert_symbols_table(self.lex.symbols_table)
-        ######################## TESTE ########################
-    

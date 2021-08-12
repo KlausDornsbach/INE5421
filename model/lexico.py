@@ -76,16 +76,20 @@ class Lexico():
             was_valid, token = self.check(lexeme)
             while forward < len(text):
                 c = text[forward]
-                if c not in whitespace:
-                    lexeme += c
+                lexeme += c
                 is_valid, token = self.check(lexeme)
                 if was_valid and not is_valid: break
                 was_valid = is_valid
                 forward += 1
-            lexeme = lexeme[:-1]
+            if forward < len(text): # se for a ultima palavra, nao precisa cortar
+                lexeme = lexeme[:-1]
             is_valid, token = self.check(lexeme)
-            self.symbols_table[lexeme] = token
+            if len(token) == 1:
+                [token] = token
+            self.symbols_table[token] = lexeme
             self.tokens.append((token, lexeme, begin))
+            if forward < len(text) and text[forward] in whitespace: # se o forward era espaco, pular o espaco para nao iniciar de um espaco
+                forward += 1
             begin = forward
             forward += 1
     
