@@ -37,9 +37,9 @@ class Automaton():
         # checa se eh AFD antes de simular
         if self.isAFND(): return
         # realiza a simulacao
-        current_state = self.init_state
+        current_state = {self.init_state}
         for c in word:
-            next_state = self.transitions.get((current_state,c))
+            next_state = self.transitions.get((*current_state,c))
             if next_state is None: return False, None
             current_state = next_state
         return True, self.final_states.get(*current_state)
