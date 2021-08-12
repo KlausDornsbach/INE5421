@@ -1,4 +1,5 @@
 from pprint import pprint  # para printar os atributos
+from string import whitespace
 
 ## tive que trocar aqui pra funcionar os imports
 from model.print_tree import print_tree
