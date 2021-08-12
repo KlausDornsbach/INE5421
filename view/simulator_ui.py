@@ -92,6 +92,7 @@ class SimulatorUI(QDialog):
             self.symbols_table.setItem(i, 2, QTableWidgetItem(entries[i][2]))
 
     def clear_symbols_table(self) -> None:
+        self.symbols_table.clearContents()        
         self.symbols_table.setRowCount(0)
 
     def close_simulator(self) -> None:

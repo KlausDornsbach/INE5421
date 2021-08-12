@@ -18,6 +18,7 @@ class AppControl():
         self.lex.make(reg_defs_list, tokens_list)
 
     def exec_lexical_analysis(self) -> None:
+        self.lex.analyzer.run('a')
         self.lex.create_symbol_table('...') # não esta fazendo nada por enquanto
 
         ######################## TESTE ########################

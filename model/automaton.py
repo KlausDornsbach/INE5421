@@ -177,7 +177,7 @@ def determinization(afnd):
         for a in afnd.alphabet:
             u = epsilon_closure(movement(T,a))
             d_states.add(u)
-            d_trans[(T,a)] = u
+            d_trans[(T,a)] = {u} # coloquei estado dentro de conjunto, para funcionar o teste isAFND em run()
     
     # computa os novos estados finais
     for s in d_states:
