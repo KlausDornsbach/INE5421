@@ -14,7 +14,6 @@ class Automaton():
     :attr init_state: estado inicial
     :attr transitions: dicionario de transicoes no formato:
         (estado, simbolo) : {estado1, estado2, ...}
-    :attr final_states: conjunto de estados finais
     :attr final_states: dicionario dos estados finais mapeados para
         as definicoes regulares que representam
     '''
@@ -84,7 +83,6 @@ class Automaton():
             new_finals[s] = rd_id
         self.final_states = new_finals
 
-        self.final_states = {names.get(fs) for fs in self.final_states}
         new_trans = {}
         for (s,a),t in self.transitions.items():
             new_trans[(names.get(s),a)] = names.get(t) if isinstance(t,frozenset) \

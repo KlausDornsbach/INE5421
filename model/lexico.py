@@ -154,12 +154,8 @@ class Lexico():
             automata.append(afd)
         
         # union
-        print('\n============================\n')
-        print('union automaton:')
         afnd_uniao = automaton.union(*automata)
-        pprint(afnd_uniao.__dict__)
 
-        
         # determinization
         afd_uniao = automaton.determinization(afnd_uniao)
         if verbose:
