@@ -78,10 +78,7 @@ class Automaton():
         self.init_state = names.get(self.init_state)
         
         # self.final_states = {names.get(fs) for fs in self.final_states}
-        new_finals = {}
-        for s, rd_id in self.final_states.items():
-            new_finals[s] = rd_id
-        self.final_states = new_finals
+        self.final_states = {names.get(fs):_ for fs,_ in self.final_states.items()}
 
         new_trans = {}
         for (s,a),t in self.transitions.items():
