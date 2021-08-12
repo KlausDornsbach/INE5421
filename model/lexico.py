@@ -16,7 +16,7 @@ class Lexico():
         self.reg_defs = dict()
         self.alphabet = set()
         self.analyzer = None # vai ser o afd final apos todo o processo
-
+        self.symbols_table = dict()
 
     '''
     parametro expression é uma lista de strings que são
@@ -43,6 +43,7 @@ class Lexico():
     # ler um texto e dar output em uma lista:
     # padrao, lexema, indice no arquivo
     def create_symbol_table(self, text):
+        
         pass
 
     # Identificar as tokens pelo seu identificador,

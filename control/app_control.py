@@ -17,7 +17,7 @@ class AppControl():
         # print(tokens_list)
         self.lex.make(reg_defs_list, tokens_list)
 
-    def exec_lexical_analysis(self) -> None:
+    def exec_lexical_analysis(self, source_text: str) -> None:
         self.lex.analyzer.run('a')
         self.lex.create_symbol_table('...') # não esta fazendo nada por enquanto
 

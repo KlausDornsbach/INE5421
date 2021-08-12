@@ -135,7 +135,8 @@ class SimulatorUI(QDialog):
         self.close()
 
     def exec_lexical_analysis(self) -> None:
-        self.control.exec_lexical_analysis()
+        text = self.scode_text.toPlainText()
+        self.control.exec_lexical_analysis(text)
 
     def reset_simulation(self) -> None:
         self.clear_symbols_table()
