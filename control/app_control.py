@@ -41,7 +41,7 @@ class AppControl():
 
 
     def exec_lexical_analysis(self, source_text: str) -> None:
-        self.lex.analyzer.run('a')
+        self.lex.analyze(source_text)
 
         ######################## TESTE ########################
         # exemplo de uma lista de entrada

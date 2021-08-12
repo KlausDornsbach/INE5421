@@ -68,7 +68,7 @@ class Lexico():
                 forward += 1
             lexeme = text[begin:forward-1]
             token = self.analyzer.run(lexeme)
-            self.symbol_table[lexeme] = token
+            self.symbols_table[lexeme] = token
             begin = forward
             forward += 1
     
