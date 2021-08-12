@@ -195,11 +195,12 @@ def determinization(afnd):
     # for s in d_states:
     #     if s & afnd.final_states:
     #         d_final.add(s)
-    for s_set in d_states:
-        for s in s_set:
-            if s in afnd.final_states.keys():
-                "AQUI VAI DAR PROBLEMA se tiver um estado final que mapeia pra mais de um ID de reg def!!"
-                d_final[s] = afnd.final_states[s] # adicionar ID no conjunto de ids do estado final
+    for s in d_states:
+        t = s & afnd_final_states.keys()
+        if t:
+            d_final[s] = set()
+            for u in t:
+                d_final[s].update(afnd_final_states[u])
 
     # afd obtido apos a determinizacao
     afd = Automaton(afnd.alphabet, d_states, d_init, d_trans, d_final)
