@@ -60,6 +60,14 @@ class Lexico():
             #     self.symbols_table[k[0]] = k[2]
             self.symbols_table[k[0]] = k[2]
 
+    # encontra o indice do proximo caractere
+    # no texto que nao seja de espacamento,
+    # a partir do indice i
+    def get_next_idx(self, text, i):
+        while i < len(text) and text[i] in whitespace:
+            i += 1
+        return i
+
     # checa se o lexema ja esta na TS
     # se estiver, retorna True e seu token
     # senao, executa o AFD sobre o lexema
@@ -70,24 +78,29 @@ class Lexico():
 
     # faz a analise lexica
     def analyze(self, text):
-        begin, forward = 0, 1
+        # inicializa os ponteiros
+        begin = self.get_next_idx(text, 0)
+        forward = begin + 1
+
         while begin < len(text):
             lexeme = text[begin]
             was_valid, token = self.check(lexeme)
             while forward < len(text):
-                c = text[forward]
-                if c not in whitespace:
-                    lexeme += c
+                lexeme += text[forward]
                 is_valid, token = self.check(lexeme)
-                if was_valid and not is_valid: break
+                if was_valid and not is_valid:
+                    lexeme = lexeme[:-1]
+                    break
                 was_valid = is_valid
                 forward += 1
-            lexeme = lexeme[:-1]
+            # lexema valido encontrado
+            # pega o token e atualiza as estruturas
             is_valid, token = self.check(lexeme)
             self.symbols_table[lexeme] = token
             self.tokens.append((token, lexeme, begin))
-            begin = forward
-            forward += 1
+            # atualiza os ponteiros
+            begin = self.get_next_idx(text, forward)
+            forward = begin + 1
     
     # Identificar as tokens pelo seu identificador,
     # em um dicionario.
