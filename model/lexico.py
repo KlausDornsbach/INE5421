@@ -11,12 +11,28 @@ import model.syntax_tree as syntax_tree
 # import syntax_tree
 
 class Lexico():
-    # modificação desse construtor, para poder 
-    # inicializar o Lexico no controlador da aplicação
     def __init__(self):
         self.reg_defs = dict()
         self.alphabet = set()
-        self.analyzer = None # vai ser o afd final apos todo o processo
+        self.analyzer = None
+        self.symbols_table = dict()
+        self.tokens = []
+
+
+    # reinicializa lexico, para repetir uma
+    # nova analise lexica, sobre um diferente
+    # texto fonte
+    def reset(self) -> None:
+        self.symbols_table.clear()
+        self.tokens.clear()
+
+    # método para reinicializar os atributos
+    # para evitar ter de criar uma nova instancia
+    # toda vez que iniciar uma nova simulação
+    def clear(self) -> None:
+        self.reg_defs = dict()
+        self.alphabet = set()
+        self.analyzer = None
         self.symbols_table = dict()
         self.tokens = []
 
@@ -42,7 +58,7 @@ class Lexico():
     def regex_to_afd(self, file):
         pass
     
-
+    
     '''
     método para inicializar a tabela de simbolos, a
     partir das palavras reservadas de entrada.

@@ -8,27 +8,23 @@ class AppControl():
         self.simulator_ui = self.main_ui.simulator_ui
         self.lex = Lexico()
 
-    def start_simulator(self, input_reg_defs: str, input_tokens: str, keywords: str):
+    def start_simulator(self, input_reg_defs: str, input_tokens: str, keywords: str) -> None:
         reg_defs_list = input_reg_defs.splitlines()
         tokens_list = input_tokens.splitlines()
+        self.create_symbols_table(keywords)
+        self.lex.make(reg_defs_list, tokens_list)
 
+    def create_symbols_table(self, keywords: str) -> None:
         keywords_list = self.parse_keywords(keywords.splitlines())
-
-        
-        # # para ver como ficam as listas cruas
-        # # a partir das linhas dos campos de texto:
-        # print(reg_defs_list)
-        # print(tokens_list)
         self.lex.create_symbol_table(keywords_list)
         self.simulator_ui.insert_symbols_table(self.lex.symbols_table)
-        self.lex.make(reg_defs_list, tokens_list)
 
     # faz o parsing do texto das palavras reservadas
     # retorna uma lista de triplas contendo:
     # [0] token da palavra chave 
     # [1] token "pai" para verificar se faz parte de alguma def reg
     # [1] lexema da palavra chave
-    def parse_keywords(self, keywords: list):
+    def parse_keywords(self, keywords: list) -> None:
         keywords_list = []
         for kw in keywords:
             list = kw.split()
@@ -44,3 +40,10 @@ class AppControl():
         self.lex.analyze(source_text)
         self.simulator_ui.insert_token_list(self.lex.tokens)
         self.simulator_ui.insert_symbols_table(self.lex.symbols_table)
+
+    def reset_simulation(self, keywords: str) -> None:
+        self.lex.reset()
+        self.create_symbols_table(keywords)
+
+    def end_simulation(self) -> None:
+        self.lex.clear()

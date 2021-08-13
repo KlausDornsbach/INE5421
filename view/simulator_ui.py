@@ -131,14 +131,14 @@ class SimulatorUI(QDialog):
         for i in range(size):
             self.token_list_table.setItem(i, 0, QTableWidgetItem(entries[i][0]))
             self.token_list_table.setItem(i, 1, QTableWidgetItem(entries[i][1]))
-            self.token_list_table.setItem(i, 2, QTableWidgetItem(entries[i][2]))
+            self.token_list_table.setItem(i, 2, QTableWidgetItem(str(entries[i][2])))
 
     def clear_token_list(self) -> None:
         self.token_list_table.clearContents()        
         self.token_list_table.setRowCount(0)
 
     def close_simulator(self) -> None:
-        self.reset_simulation()
+        self.control.end_simulation()
         self.close()
 
     def exec_lexical_analysis(self) -> None:
@@ -148,3 +148,5 @@ class SimulatorUI(QDialog):
     def reset_simulation(self) -> None:
         self.clear_symbols_table()
         self.clear_token_list()
+        keywords = self.main_UI.keywords_text.toPlainText()
+        self.control.reset_simulation(keywords)
