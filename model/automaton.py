@@ -42,8 +42,7 @@ class Automaton():
             next_state = self.transitions.get((*current_state,c))
             if next_state is None: return False, None
             current_state = next_state
-        token = self.final_states.get(*current_state)
-        return token is not None, token
+        return True, self.final_states.get(*current_state)
 
     # renomeia os estados com numeros comecando por "i"
     # em todas as estruturas e atributos,

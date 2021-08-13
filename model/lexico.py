@@ -100,6 +100,9 @@ class Lexico():
         while begin < len(text):
             lexeme = text[begin]
             was_valid, token = self.check(lexeme)
+            if token is None:
+                self.tokens.append(('ERRO LÉXICO', f'Caracter não esperado: {lexeme[0]}', begin))
+                break
             while forward < len(text):
                 lexeme += text[forward]
                 is_valid, token = self.check(lexeme)
@@ -111,7 +114,7 @@ class Lexico():
             if forward < len(text): # se for a ultima palavra, nao precisa cortar
                 lexeme = lexeme[:-1]
             is_valid, token = self.check(lexeme)
-            if token is not None and len(token) == 1:
+            if len(token) == 1:
                 [token] = token
             self.symbols_table[token] = lexeme
             self.tokens.append((token, lexeme, begin))
