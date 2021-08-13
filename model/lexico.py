@@ -85,7 +85,7 @@ class Lexico():
         return i
     
     # checa se o lexema ja esta na TS
-    # se estiver, retorna True e seu token
+    # se estiver, retorna True e seu(s) token(s)
     # senao, executa o AFD sobre o lexema
     def check(self, lexeme):
         if lexeme in self.symbols_table:
@@ -99,25 +99,23 @@ class Lexico():
         forward = begin + 1
         while begin < len(text):
             lexeme = text[begin]
-            was_valid, token = self.check(lexeme)
-            if token is None:
+            was_valid, tokens = self.check(lexeme)
+            if tokens is None:
                 self.tokens.append(('ERRO LÉXICO', f'Caracter não esperado: {lexeme[0]}', begin))
                 break
             while forward < len(text):
                 lexeme += text[forward]
-                is_valid, token = self.check(lexeme)
+                is_valid, tokens = self.check(lexeme)
                 if was_valid and not is_valid: break
                 was_valid = is_valid
                 forward += 1
             # lexema valido encontrado
-            # pega o token e atualiza as estruturas
+            # pega o(s) token(s) e atualiza as estruturas
             if forward < len(text): # se for a ultima palavra, nao precisa cortar
                 lexeme = lexeme[:-1]
-            is_valid, token = self.check(lexeme)
-            if len(token) == 1:
-                [token] = token
-            self.symbols_table[lexeme] = token
-            self.tokens.append((token, lexeme, begin))
+            is_valid, tokens = self.check(lexeme)
+            self.symbols_table[lexeme] = tokens
+            self.tokens.append((','.join(tokens), lexeme, begin))
             # atualiza os ponteiros
             begin = self.get_next_idx(text, forward) # se o forward era espaco, pular o espaco para nao iniciar de um espaco
             forward = begin + 1
