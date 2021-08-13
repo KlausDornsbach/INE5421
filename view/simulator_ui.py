@@ -138,6 +138,8 @@ class SimulatorUI(QDialog):
         self.token_list_table.setRowCount(0)
 
     def close_simulator(self) -> None:
+        self.clear_symbols_table()
+        self.clear_token_list()
         self.control.end_simulation()
         self.close()
 
