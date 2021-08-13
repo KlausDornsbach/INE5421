@@ -111,7 +111,7 @@ class Lexico():
             if forward < len(text): # se for a ultima palavra, nao precisa cortar
                 lexeme = lexeme[:-1]
             is_valid, token = self.check(lexeme)
-            if len(token) == 1:
+            if token is not None and len(token) == 1:
                 [token] = token
             self.symbols_table[token] = lexeme
             self.tokens.append((token, lexeme, begin))
