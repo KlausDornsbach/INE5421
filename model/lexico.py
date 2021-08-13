@@ -74,7 +74,7 @@ class Lexico():
         for k in keywords:
             # if k[1] in self.reg_defs.keys():
             #     self.symbols_table[k[0]] = k[2]
-            self.symbols_table[k[0]] = k[2]
+            self.symbols_table[k[0]] = {k[2]}
 
     # encontra o indice do proximo caractere
     # no texto que nao seja de espacamento,
