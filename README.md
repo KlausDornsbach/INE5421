@@ -40,7 +40,7 @@ Desenvolvido por Bernardo Pasa Ribeiro, Klaus de Freitas Dornsbach e Eduardo Vic
     
     Em 3, foi feito um campo separado para listagem de todos as palavras reservadas para os padrões de tokens definidos em 2. A notação convencionada é a seguinte:
      
-    - identificador do token da palavra reservada : identificador do token a qual a define = "lexema da palavra reservada".
+    - identificador do token da palavra reservada = identificador do token a qual a define : "lexema da palavra reservada".
     
     Nota-se, no entanto, que como não há validação dos campos de texto, cabe ao usuário inserir o identificador do token "pai" corretamente.
 
