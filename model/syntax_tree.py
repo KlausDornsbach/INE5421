@@ -56,8 +56,9 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
     new_re = []
     while re != '':
         if re[0]!='{':
-            new_re.append(')')
-            par_count -= 1
+            if par_count > 0:
+                new_re.append(')')
+                par_count -= 1
             new_re.append(re[0])
             # i += 1
             # print(re[0])
@@ -80,7 +81,7 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
             else:
                 print('erro, expressão mal formada')
             re = re[end+1:]
-    while par_count:
+    while par_count > 0:
         new_re.append(')')
         par_count -= 1
     print(''.join(new_re))
@@ -141,21 +142,6 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
                 # de trás para frente, para poder identificar as aberturas
                 # e fechamentos dos parenteses na expressão
                 while j > -1:
-                    buf = pre[j] + buf
-
-                    # contagem de parenteses existentes
-                    if pre[j] == ')':
-                        parenteses += 1
-                    elif pre[j] == '(':
-                        parenteses -= 1
-                        # se fechar todos parenteses encontrados
-                        # então foi encontrada a posição para abrir
-                        # o novo '('
-                        if parenteses == 0:
-                            j = -1
-                            break
-                    
-                    j -= 1
 
                     if not is_operand(pre[j], reg_defs) or parenteses:
                         buf = pre[j] + buf
@@ -182,21 +168,9 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
                         pre = pre[0 : j-1] + '(' + buf
                         break
 
-                # indica que foram encontrados parenteses teve que ser 
-                # e haviam outros parenteses no meio
-                if j == -1:
-
-                    # se nao pegou toda a expressao em 'buf',
-                    # restaura a parte anterior ao que tiver em 'buf'
-                    if len(pre) > len(buf):
-                        pre = pre[:(len(pre) - len(buf))] + '(' + buf
-                    else:
-                        pre = '(' + buf
-
-                pre += '|&).'
-                # aqui termina o tratamento da substituição de '?'
-                # se nao pegou toda a expressao em 'buf',
-                # restaura a parte anterior ao que tiver em 'buf'
+                # # aqui termina o tratamento da substituição de '?'
+                # # se nao pegou toda a expressao em 'buf',
+                # # restaura a parte anterior ao que tiver em 'buf'
                 if len(pre) > len(buf):
                     pre = pre[:(len(pre) - len(buf))] + '(' + buf
                 else:

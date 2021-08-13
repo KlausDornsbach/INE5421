@@ -196,7 +196,7 @@ def determinization(afnd):
         if t:
             d_final[s] = set()
             for u in t:
-                d_final[s].update(afnd.final_states[u])
+                d_final[s].add(afnd.final_states[u])
 
     # afd obtido apos a determinizacao
     afd = Automaton(afnd.alphabet, d_states, d_init, d_trans, d_final)
@@ -243,7 +243,7 @@ def build_automaton(sa_root: syntax_tree.Node, leaf_list: list, rd_id: str):
     alphabet = {s.value for s in leaf_list}
     alphabet.discard('#')
 
-    init_state = 0 # estado inicial
+    init_state = 1 # estado inicial
     # state_id (contador para identificar os estados)
     sid = init_state
     
