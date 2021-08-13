@@ -196,7 +196,7 @@ def determinization(afnd):
         if t:
             d_final[s] = set()
             for u in t:
-                d_final[s].update(afnd.final_states[u])
+                d_final[s].add(afnd.final_states[u])
 
     # afd obtido apos a determinizacao
     afd = Automaton(afnd.alphabet, d_states, d_init, d_trans, d_final)
