@@ -52,15 +52,20 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
     """
 
     i = 0
+    par_count = 0
     new_re = []
     while re != '':
         if re[0]!='{':
+            new_re.append(')')
+            par_count -= 1
             new_re.append(re[0])
             # i += 1
             # print(re[0])
             # print('pass')
             re = re[1:] # cut off first element
         else:
+            new_re.append('(')
+            par_count += 1
             start = 1
             end = re[start:].find('}') + 1
             # print(re[start:])
@@ -75,6 +80,9 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
             else:
                 print('erro, expressão mal formada')
             re = re[end+1:]
+    while par_count:
+        new_re.append(')')
+        par_count -= 1
     print(''.join(new_re))
     # regex
     re = '(' + ''.join(new_re) + ')#.'

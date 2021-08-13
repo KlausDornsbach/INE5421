@@ -93,8 +93,8 @@ class SimulatorUI(QDialog):
 
         i = 0
         for k, v in entries.items():
-            self.symbols_table.setItem(i, 0, QTableWidgetItem(k))
-            self.symbols_table.setItem(i, 1, QTableWidgetItem(v))
+            self.symbols_table.setItem(i, 0, QTableWidgetItem(v))
+            self.symbols_table.setItem(i, 1, QTableWidgetItem(k))
             i += 1
 
     def clear_symbols_table(self) -> None:

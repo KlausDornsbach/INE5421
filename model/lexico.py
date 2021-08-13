@@ -116,7 +116,7 @@ class Lexico():
             is_valid, token = self.check(lexeme)
             if len(token) == 1:
                 [token] = token
-            self.symbols_table[token] = lexeme
+            self.symbols_table[lexeme] = token
             self.tokens.append((token, lexeme, begin))
             # atualiza os ponteiros
             begin = self.get_next_idx(text, forward) # se o forward era espaco, pular o espaco para nao iniciar de um espaco
