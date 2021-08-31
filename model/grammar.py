@@ -11,9 +11,36 @@ class Grammar:
         self.first : Dict[str,Set[str]] = {x:set() for x in terminal | nonterminal}
         self.follow : Dict[str,Set[str]] = {x:set() for x in nonterminal}
 
-    def refactor(self):
-        pass
+    # aplica fatoracao a esquerda
+    def left_factoring(self):
+        ordering = tuple(self.nonterminal)
+        while True:
+            productions_copy = deepcopy(self.productions)
+            for i,n in enumerate(ordering):
+                # derivacoes sucessivas
+                prefixes = set()
+                for p in self.productions[n]:
+                    if p[0] in self.nonterminal:
+                        for q in self.productions[p[0]]:
+                            prefixes.add(q[0])
+                #TODO ...
+                # elimina nao determinismos diretos
+                d = {x:[] for x in self.terminal}
+                for p in self.productions[n]:
+                    if p[0] in d:
+                        d[p[0]].append(p)
+                for x, prods in d.items():
+                    if len(prods) > 1:
+                        new_symbol = str(n) + "'"
+                        self.nonterminal.add(new_symbol)
+                        self.productions[new_symbol] = []
+                        self.productions[n].append([x,new_symbol])
+                        for p in prods:
+                            self.productions[n].remove(p)
+                            self.productions[new_symbol].append(p[1:])
+            if self.productions == productions_copy: break
 
+    # remove recursao a esquerda
     def remove_left_recursion(self):
         ordering = tuple(self.nonterminal)
         while True:
@@ -40,6 +67,7 @@ class Grammar:
                     self.productions[new_symbol] = [[*x,new_symbol] for x in involved]+[['&']]
             if self.productions == productions_copy: break
 
+    # gera o conjunto first
     def generate_first(self):
         for x in self.terminal:
             self.first[x].add(x)
@@ -57,6 +85,7 @@ class Grammar:
                             self.first[x].add('&')
             if self.first == first_copy: break
 
+    # gera o conjunto follow
     def generate_follow(self):
         self.follow[self.initial_symbol].add('$')
         while True:
@@ -81,6 +110,8 @@ class Grammar:
 
 
 def main():
+    # Teste de calculo de First e Follow da gramatica
+    # da esquerda na pagina 27 dos slides sobre Analise Sintatica
     # terminal = {'a','b','c','d'}
     # nonterminal = {'S','A','B'}
     # initial_symbol = 'S'
@@ -89,20 +120,40 @@ def main():
     #     'A': [['a','A'],['&']],
     #     'B': [['b','B'],['A','d'],['&']]
     # }
-    terminal = {'a','b'}
-    nonterminal = {'S','A'}
+    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
+    # g.generate_first()
+    # g.generate_follow()
+    # pprint(g.first)
+    # pprint(g.follow)
+
+    # Teste de fatoracao da gramatica da pagina 35
+    # dos slides sobre Gramaticas Livres de Contexto
+    terminal = {'a','c','d','e','f'}
+    nonterminal = {'S','A','B','C','D'}
     initial_symbol = 'S'
     productions = {
-        'S': [['S','a'],['A','b']],
-        'A': [['S','b'],['b']]
+        'S': [['A','C'],['B','C']],
+        'A': [['a','D'],['c','C']],
+        'B': [['a','B'],['d','D']],
+        'C': [['e','C'],['e','A']],
+        'D': [['f','D'],['C','B']]
     }
     g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    g.generate_first()
-    g.generate_follow()
-    g.remove_left_recursion()
-    pprint(g.first)
-    pprint(g.follow)
+    g.left_factoring()
     g.print()
+
+    # Teste de eliminacao de recursao a esquerda da gramatica
+    # da pagina 41 dos slides sobre Gramaticas Livres de Contexto
+    # terminal = {'a','b','c','d'}
+    # nonterminal = {'S','A'}
+    # initial_symbol = 'S'
+    # productions = {
+    #     'S': [['A','a'],['S','b']],
+    #     'A': [['S','c'],['d']]
+    # }
+    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
+    # g.remove_left_recursion()
+    # g.print()
 
 if __name__ == '__main__':
     main()
