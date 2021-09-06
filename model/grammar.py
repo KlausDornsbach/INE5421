@@ -13,17 +13,39 @@ class Grammar:
 
     # aplica fatoracao a esquerda
     def left_factoring(self):
-        ordering = tuple(self.nonterminal)
+        ordering = [k for k in self.productions.keys()] # fazendo assim garante a ordem das produções
+        # ordering = tuple(self.nonterminal)
         while True:
             productions_copy = deepcopy(self.productions)
             for i,n in enumerate(ordering):
                 # derivacoes sucessivas
+                repeated = set() # guarda os simbolos da cabeça das produçoes que causam ND indireto
                 prefixes = set()
                 for p in self.productions[n]:
                     if p[0] in self.nonterminal:
                         for q in self.productions[p[0]]:
-                            prefixes.add(q[0])
-                #TODO ...
+                            if q[0] in prefixes:
+                                repeated.add(q[0])
+                            else:
+                                prefixes.add(q[0])
+
+                # elimina ND's indiretos 
+                # (substituindo os NT's por suas produções)
+                if repeated:
+                    new_productions = []
+                    for r in repeated:
+                        for p in self.productions[n]:
+                            if p[0] in self.nonterminal:
+                                # 'search' serve para filtrar apenas as produções que contem
+                                # ND indireto, e que portanto devem ser modificadas.
+                                search = set( [ q[0] for q in self.productions[p[0]] ] )
+                                if r in search:
+                                    for q in self.productions[p[0]]:
+                                        new = q + p[1:]
+                                        new_productions.append(new)
+                
+                    self.productions[n] = new_productions
+                
                 # elimina nao determinismos diretos
                 d = {x:[] for x in self.terminal}
                 for p in self.productions[n]:
