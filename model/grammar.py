@@ -2,7 +2,7 @@ from copy import deepcopy
 from pprint import pprint
 from typing import List, Set, Dict
 
-class Grammar:
+class Grammar():
     def __init__(self, terminal : Set[str], nonterminal : Set[str], initial_symbol : str, productions : Dict[str,List[List[str]]]):
         self.terminal = terminal
         self.nonterminal = nonterminal
