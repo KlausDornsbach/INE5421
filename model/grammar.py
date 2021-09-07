@@ -150,15 +150,29 @@ def main():
 
     # Teste de fatoracao da gramatica da pagina 35
     # dos slides sobre Gramaticas Livres de Contexto
-    terminal = {'a','c','d','e','f'}
-    nonterminal = {'S','A','B','C','D'}
+    # terminal = {'a','c','d','e','f'}
+    # nonterminal = {'S','A','B','C','D'}
+    # initial_symbol = 'S'
+    # productions = {
+    #     'S': [['A','C'],['B','C']],
+    #     'A': [['a','D'],['c','C']],
+    #     'B': [['a','B'],['d','D']],
+    #     'C': [['e','C'],['e','A']],
+    #     'D': [['f','D'],['C','B']]
+    # }
+    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
+    # g.left_factoring()
+    # g.print()
+
+    # Teste de fatoração de uma gramatica que possui
+    # não determinismo inerente (fatoracao entra em loop)
+    terminal = {'a','b','c'}
+    nonterminal = {'S','A','B'}
     initial_symbol = 'S'
     productions = {
-        'S': [['A','C'],['B','C']],
-        'A': [['a','D'],['c','C']],
-        'B': [['a','B'],['d','D']],
-        'C': [['e','C'],['e','A']],
-        'D': [['f','D'],['C','B']]
+        'S': [['A','a'],['B','b']],
+        'A': [['c','A','c'],['a']],
+        'B': [['c','B','c'],['b']],
     }
     g = Grammar(terminal, nonterminal, initial_symbol, productions)
     g.left_factoring()
@@ -176,6 +190,7 @@ def main():
     # g = Grammar(terminal, nonterminal, initial_symbol, productions)
     # g.remove_left_recursion()
     # g.print()
+
 
 if __name__ == '__main__':
     main()
