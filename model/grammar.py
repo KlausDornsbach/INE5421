@@ -13,9 +13,9 @@ class Grammar():
 
     # aplica fatoracao a esquerda
     def left_factoring(self):
-        ordering = [k for k in self.productions.keys()] # fazendo assim garante a ordem das produções
-        # ordering = tuple(self.nonterminal)
-        while True:
+        threshold = 10 * len(self.nonterminal) # limite arbitrario para interromper em caso de loop
+        ordering = tuple(self.nonterminal)
+        while len(self.nonterminal) < threshold:
             productions_copy = deepcopy(self.productions)
             for i,n in enumerate(ordering):
                 # derivacoes sucessivas
@@ -40,6 +40,9 @@ class Grammar():
                                 # ND indireto, e que portanto devem ser modificadas.
                                 search = set( [ q[0] for q in self.productions[p[0]] ] )
                                 if r in search:
+                                    # para cada produção 'q' do NT 'p[0]'
+                                    # que gerou o ND indireto, inclui uma nova
+                                    # produção em p, substituindo 'p[0]' por 'q'
                                     for q in self.productions[p[0]]:
                                         new = q + p[1:]
                                         new_productions.append(new)
@@ -60,7 +63,10 @@ class Grammar():
                         for p in prods:
                             self.productions[n].remove(p)
                             self.productions[new_symbol].append(p[1:])
+            ordering = tuple(self.nonterminal)
             if self.productions == productions_copy: break
+
+        assert self.productions == productions_copy, "FACTORING PANIC! (fatoração da gramática entrou em loop)"
 
     # remove recursao a esquerda
     def remove_left_recursion(self):
