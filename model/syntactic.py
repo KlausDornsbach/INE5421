@@ -67,7 +67,7 @@ class Syntactic():
             if i >= len(sentence):
                 print('not accepted (reach end)')
             sentence_item = sentence[i]
-            if stack[-1] in self.grammar.terminal:
+            if stack[-1] in self.grammar.terminal | {'$'}:
                 if stack[-1] == '$' and sentence_item == '$':
                     print('GREAT SUCCESS!')
                     break
@@ -123,7 +123,7 @@ def main():
     s.generate_parsing_table(g)
     pprint(s.parsing_table)
 
-    sentence = 'c v f b e'
+    sentence = 'c v f b e ;'
     s.validate_sentence(sentence)
 
     # gramatica miniteste 09   
