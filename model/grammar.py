@@ -140,19 +140,19 @@ class Grammar():
 def main():
     # Teste de calculo de First e Follow da gramatica
     # da esquerda na pagina 27 dos slides sobre Analise Sintatica
-    # terminal = {'a','b','c','d'}
-    # nonterminal = {'S','A','B'}
-    # initial_symbol = 'S'
-    # productions = {
-    #     'S': [['A','b'],['A','B','c']],
-    #     'A': [['a','A'],['&']],
-    #     'B': [['b','B'],['A','d'],['&']]
-    # }
-    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    # g.generate_first()
-    # g.generate_follow()
-    # pprint(g.first)
-    # pprint(g.follow)
+    terminal = {'a','b','c','d'}
+    nonterminal = {'S','A','B'}
+    initial_symbol = 'S'
+    productions = {
+        'S': [['A','b'],['A','B','c']],
+        'A': [['a','A'],['&']],
+        'B': [['b','B'],['A','d'],['&']]
+    }
+    g = Grammar(terminal, nonterminal, initial_symbol, productions)
+    g.generate_first()
+    g.generate_follow()
+    pprint(g.first)
+    pprint(g.follow)
 
     # Teste de fatoracao da gramatica da pagina 35
     # dos slides sobre Gramaticas Livres de Contexto
@@ -172,17 +172,17 @@ def main():
 
     # Teste de fatoração de uma gramatica que possui
     # não determinismo inerente (fatoracao entra em loop)
-    terminal = {'a','b','c'}
-    nonterminal = {'S','A','B'}
-    initial_symbol = 'S'
-    productions = {
-        'S': [['A','a'],['B','b']],
-        'A': [['c','A','c'],['a']],
-        'B': [['c','B','c'],['b']],
-    }
-    g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    g.left_factoring()
-    g.print()
+    # terminal = {'a','b','c'}
+    # nonterminal = {'S','A','B'}
+    # initial_symbol = 'S'
+    # productions = {
+    #     'S': [['A','a'],['B','b']],
+    #     'A': [['c','A','c'],['a']],
+    #     'B': [['c','B','c'],['b']],
+    # }
+    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
+    # g.left_factoring()
+    # g.print()
 
     # Teste de eliminacao de recursao a esquerda da gramatica
     # da pagina 41 dos slides sobre Gramaticas Livres de Contexto
