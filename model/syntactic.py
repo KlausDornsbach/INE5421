@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import Tuple
+from typing import Tuple, List
 # from grammar import Grammar
 from model.grammar import Grammar
 
@@ -12,7 +12,7 @@ class Syntactic():
         self.grammar = None
         self.parsing_table = dict()
 
-    def make(self, nonterminals: list[str], terminals: list[str], productions: dict) -> str:
+    def make(self, nonterminals: List[str], terminals: List[str], productions: dict) -> str:
         """
         método que inicializa o analizador sintático, 
         primeiro criando a gramática a partir dos NT's

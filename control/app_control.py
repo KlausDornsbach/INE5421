@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QMessageBox
 from model.syntactic import Syntactic
 from view.main_ui import MainUI
 from model.lexico import Lexico
+from typing import List
 
 class AppControl():
 
@@ -57,7 +58,7 @@ class AppControl():
     # transforma a gramática de entrada em forma de 
     # strings num dicionário, conforme modelagem adotada
     # (ver construtor da classe Grammar) 
-    def split_grammar(self, grammar_list: list[str]) -> dict:
+    def split_grammar(self, grammar_list: List[str]) -> dict:
         grammar = dict()
         for line in grammar_list:
             line = line.split(' -> ')
