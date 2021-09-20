@@ -1,15 +1,44 @@
 from pprint import pprint
-from grammar import Grammar
+from typing import Tuple
+# from grammar import Grammar
+from model.grammar import Grammar
 
 class Syntactic():
-    def __init__(self, grammar: Grammar):
-        self.grammar =  grammar
+    def __init__(self):
+        self.grammar = None
         self.parsing_table = dict()
+
+    def clear(self) -> None:
+        self.grammar = None
+        self.parsing_table = dict()
+
+    def make(self, nonterminals: list[str], terminals: list[str], productions: dict) -> str:
+        """
+        método que inicializa o analizador sintático, 
+        primeiro criando a gramática a partir dos NT's
+        terminais (tokens), e das produções da gramática,
+        e depois chama o método para gerar a tabela de 
+        análise.
+        param return: string contendo msg de erro se
+                    tiver algum problema na gramática (não
+                    ser fatorável, ou não ser tipo LL(1)),
+                    ou na geração da tabela de análise.
+                    retorna uma string vazia em caso de sucesso.
+        """
+        # OBS: se assume que o simbolo inicial é sempre o primeiro NT listado
+        g = Grammar(set(terminals), set(nonterminals), nonterminals[0], productions)
+        error = g.is_LL1()
+        if error:
+            return error
+
+        self.grammar = g
+        self.generate_parsing_table(g)
+        return error
 
     # método que aplica o algoritmo de gerar 
     # a tabela de análise mostrado em aula.
     def generate_parsing_table(self, grammar: Grammar):
-        parsing_table = {nt: dict() for nt in grammar.nonterminal}
+        parsing_table = {nt: dict() for nt in grammar.productions.keys()}
         for head, prods in grammar.productions.items():
             for p in prods:
                 if p[0] in grammar.terminal:
@@ -42,7 +71,8 @@ class Syntactic():
 
         self.parsing_table = parsing_table
 
-    def validate_sentence(self, sentence: str):
+    def validate_sentence(self, sentence: str) -> Tuple[bool, str]:
+        result, description = False, ''
         # inicia a pilha
         stack = ['$', self.grammar.initial_symbol]
         # parse a sentença (itens vem espaçacos na string):
@@ -54,14 +84,16 @@ class Syntactic():
         while(1):
             # item na sentenca
             if i >= len(sentence):
-                print('not accepted (reach end)')
+                description = 'Sentença atingiu o fim mas não foi aceita.'
+                break
             sentence_item = sentence[i]
             if stack[-1] in self.grammar.terminal | {'$'}:
                 if stack[-1] == '$' and sentence_item == '$':
-                    print('GREAT SUCCESS!')
+                    description = 'GREAT SUCCESS! A sentença é válida!'
+                    result = True
                     break
                 elif stack[-1] != sentence_item:
-                    print('not accepted (top of stack terminal != sentence[i])')
+                    description = f'Não aceitou: (topo da pilha {stack[-1]} != {sentence[i]})'
                     break
                 else:
                     i += 1
@@ -73,7 +105,7 @@ class Syntactic():
                 try:
                     parsing_table_list = self.parsing_table[stack[-1]][sentence_item]
                     if parsing_table_list == []:
-                        print('not accepted ([])')
+                        description = 'Não aceitou. Atingiu um campo vazio na tabela de parsing.'
                         break
                     else:
                         # desempilha
@@ -88,76 +120,7 @@ class Syntactic():
                             print('stack: ', stack)
 
                 except KeyError:
-                    print('not accepted (key error)')
+                    description = 'Não aceitou. Entrada da tabela de parsing inválida.'
                     break
-
-
-def main():
-    # gramática do miniteste 10
-    terminal = {'b','c','e','f','v','com',';'}
-    nonterminal = {'P','K','V','F','C'}
-    initial_symbol = 'P'
-    productions = {
-        'P': [['K','V','C']],
-        'K': [['c','K'],['&']],
-        'V': [['v','V'],['F']],
-        'F': [['f','P',';','F'],['&']],
-        'C': [['b','V','C','e'],['com',';','C'],['&']]
-    }
-    g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    g.generate_first()
-    g.generate_follow()
-
-    s = Syntactic(g)
-    s.generate_parsing_table(g)
-    pprint(s.parsing_table)
-
-    sentence = 'c v f b e ;'
-    s.validate_sentence(sentence)
-
-    # gramatica miniteste 09   
-    # terminal = {'a', 'b', 'c', 'd'}
-    # nonterminal = {'S', 'A', 'B', 'C', 'D'}
-    # initial_symbol = 'S'
-    # productions = {
-    #     'S': [['A', 'B']],
-    #     'A': [['a','B','A'],['&']],
-    #     'B': [['C','D']],
-    #     'C': [['b','D','C'],['&']],
-    #     'D': [['c','S','c'],['d']]
-    # }
-    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    # g.generate_first()
-    # g.generate_follow()
-
-    # s = Syntactic(g)
-    # s.generate_parsing_table(g)
-    # pprint(s.parsing_table)
-
-    # sentence = ''
-    # s.validate_sentence(sentence)
-
-    # gramatica Exemplo construção preditivo LL(1) semana 11
-    # terminal = {'+', '*', '(', ')', 'id'}
-    # nonterminal = {'E', 'T', 'F'}
-    # initial_symbol = 'E'
-    # productions = {
-    #     'E': [['E', '+', 'T'], ['T']],
-    #     'T': [['T', '*', 'F'], ['F']],
-    #     'F': [['(', 'E', ')'], ['id']]
-    # }
-    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    # # problema nas strings de nomes gerados no remove left recursion
-    # # (T -> T')
-    # g.remove_left_recursion()
-    # g.left_factoring()
-    
-    # g.generate_first()
-    # g.generate_follow()
-
-    # s = Syntactic(g)
-    # s.generate_parsing_table(g)
-    # pprint(s.parsing_table)
-
-if __name__ == '__main__':
-    main()
+        
+        return result, description

@@ -12,10 +12,13 @@ class Grammar():
         self.follow : Dict[str,Set[str]] = {x:set() for x in nonterminal}
 
     # aplica fatoracao a esquerda
-    def left_factoring(self):
+    # retorna msg de erro, caso não seja 
+    # possível fatorar (entrar em loop)
+    def left_factoring(self) -> str:
         threshold = 10 * len(self.nonterminal) # limite arbitrario para interromper em caso de loop
         ordering = tuple(self.nonterminal)
-        while len(self.nonterminal) < threshold:
+        while threshold:
+            threshold -= 1
             productions_copy = deepcopy(self.productions)
             for i,n in enumerate(ordering):
                 # derivacoes sucessivas
@@ -66,7 +69,9 @@ class Grammar():
             ordering = tuple(self.nonterminal)
             if self.productions == productions_copy: break
 
-        assert self.productions == productions_copy, "FACTORING PANIC! (fatoração da gramática entrou em loop)"
+        if not threshold:
+            return "FACTORING PANIC! (fatoração da gramática entrou em loop)"
+        return ''
 
     # remove recursao a esquerda
     def remove_left_recursion(self):
@@ -137,66 +142,32 @@ class Grammar():
             print(f'{head} ::= {" | ".join(map("".join,body))}')
 
 
-def main():
-    # Teste de calculo de First e Follow da gramatica
-    # da esquerda na pagina 27 dos slides sobre Analise Sintatica
-    terminal = {'a','b','c','d'}
-    nonterminal = {'S','A','B'}
-    initial_symbol = 'S'
-    productions = {
-        'S': [['A','b'],['A','B','c']],
-        'A': [['a','A'],['&']],
-        'B': [['b','B'],['A','d'],['&']]
-    }
-    g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    g.generate_first()
-    g.generate_follow()
-    pprint(g.first)
-    pprint(g.follow)
+    # teste 3 (LL1) intersecção de firsts e follows
+    def first_follow_intersection(self) -> str:
+        derives_epsilon = [nt for nt in self.nonterminal if '&' in self.first[nt]]
+        for nt in derives_epsilon:
+            if self.first[nt].intersection(self.follow[nt]):
+                return f'Gramática não é LL1! Intersecção de first e follow do não terminal {{nt}} não vazia!'
 
-    # Teste de fatoracao da gramatica da pagina 35
-    # dos slides sobre Gramaticas Livres de Contexto
-    # terminal = {'a','c','d','e','f'}
-    # nonterminal = {'S','A','B','C','D'}
-    # initial_symbol = 'S'
-    # productions = {
-    #     'S': [['A','C'],['B','C']],
-    #     'A': [['a','D'],['c','C']],
-    #     'B': [['a','B'],['d','D']],
-    #     'C': [['e','C'],['e','A']],
-    #     'D': [['f','D'],['C','B']]
-    # }
-    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    # g.left_factoring()
-    # g.print()
+        return ''
 
-    # Teste de fatoração de uma gramatica que possui
-    # não determinismo inerente (fatoracao entra em loop)
-    # terminal = {'a','b','c'}
-    # nonterminal = {'S','A','B'}
-    # initial_symbol = 'S'
-    # productions = {
-    #     'S': [['A','a'],['B','b']],
-    #     'A': [['c','A','c'],['a']],
-    #     'B': [['c','B','c'],['b']],
-    # }
-    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    # g.left_factoring()
-    # g.print()
-
-    # Teste de eliminacao de recursao a esquerda da gramatica
-    # da pagina 41 dos slides sobre Gramaticas Livres de Contexto
-    # terminal = {'a','b','c','d'}
-    # nonterminal = {'S','A'}
-    # initial_symbol = 'S'
-    # productions = {
-    #     'S': [['A','a'],['S','b']],
-    #     'A': [['S','c'],['d']]
-    # }
-    # g = Grammar(terminal, nonterminal, initial_symbol, productions)
-    # g.remove_left_recursion()
-    # g.print()
-
-
-if __name__ == '__main__':
-    main()
+    # aplica os 3 testes de verificação LL(1):
+    # 1) remover recursao a esquerda
+    # 2) fatorar 
+    # 3) p/ todo NT que derive &: 
+    #    First(NT) interseccçao Follow(NT) = []
+    def is_LL1(self) -> str:
+        # teste 1
+        self.remove_left_recursion()
+        
+        # teste 2
+        error = self.left_factoring()
+        if error:
+            return error
+        
+        # teste 3
+        self.generate_first()
+        self.generate_follow()
+        error = self.first_follow_intersection()
+        return error
+  

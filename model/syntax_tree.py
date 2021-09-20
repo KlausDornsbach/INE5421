@@ -80,7 +80,7 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
             else:
                 print('erro, expressão mal formada')
             re = re[end+1:]
-    while par_count:
+    while par_count > 0:
         new_re.append(')')
         par_count -= 1
     print(''.join(new_re))
