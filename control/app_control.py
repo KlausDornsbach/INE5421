@@ -11,7 +11,6 @@ class AppControl():
         self.simulator_ui = self.main_ui.simulator_ui
         self.lex = Lexico()
         self.syn = Syntactic()
-        self.msg_dialog = QMessageBox()
 
     def start_simulator(self, reg_defs: str, tokens: str, keywords: str, nonterminals: str, grammar: str) -> None:
         reg_defs_list = reg_defs.splitlines()
@@ -37,7 +36,7 @@ class AppControl():
         self.simulator_ui.insert_symbols_table(self.lex.symbols_table)
 
     def create_parsing_table(self, terminals: list) -> None:
-        self.simulator_ui.init_parsing_table(self.syn.parsing_table, terminals)
+        self.simulator_ui.create_parsing_table(self.syn.parsing_table, terminals)
 
     # faz o parsing do texto das palavras reservadas
     # retorna uma lista de triplas contendo:
@@ -75,9 +74,16 @@ class AppControl():
         self.simulator_ui.insert_token_list(self.lex.tokens)
         self.simulator_ui.insert_symbols_table(self.lex.symbols_table)
 
-    def exec_syntactic_analysis(self, source_text: str) -> None:
-        result, description = self.syn.validate_sentence(source_text)
-        self.show_message_dialog(description, result)
+    def exec_syntactic_analysis(self) -> None:
+        tokens_list = self.lex.tokens
+        if not tokens_list:
+            self.show_message_dialog('Lista de tokens vazia! Por favor execute a análise léxica, antes da sintática.')
+        elif tokens_list[-1][0] == 'ERRO LÉXICO':
+            self.show_message_dialog('\n'.join(tokens_list[-1][0:2]))
+        else:
+            sentence = [tk[0] for tk in tokens_list]
+            result, description = self.syn.validate_sentence(sentence)
+            self.show_message_dialog(description, result)
 
     def reset_simulation(self, keywords: str) -> None:
         self.lex.reset()
@@ -88,15 +94,16 @@ class AppControl():
         self.syn.clear()
 
     def show_message_dialog(self, description: str, result=False) -> None:
-        self.msg_dialog = QMessageBox()
+        msg_dialog = QMessageBox()
+        msg_dialog.setWindowTitle("Informação")
         if result:
-            self.msg_dialog.setIcon(QMessageBox.Information)
-            self.msg_dialog.setWindowTitle("Sucesso!")
-            self.msg_dialog.setText(description)
+            msg_dialog.setIcon(QMessageBox.Information)
+            msg_dialog.setText("Sucesso!")
+            msg_dialog.setInformativeText(description)
         else:
-            self.msg_dialog.setWindowTitle("Erro")
-            self.msg_dialog.setIcon(QMessageBox.Warning)
-            self.msg_dialog.setText("Ocorreu um erro:")
-            self.msg_dialog.setInformativeText(description)
-        self.msg_dialog.setStandardButtons(QMessageBox.Ok)
-        self.msg_dialog.exec_()
+            msg_dialog.setIcon(QMessageBox.Warning)
+            msg_dialog.setText("Ocorreu um erro:")
+            msg_dialog.setInformativeText(description)
+        
+        msg_dialog.setStandardButtons(QMessageBox.Ok)
+        msg_dialog.exec_()

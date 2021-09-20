@@ -71,12 +71,12 @@ class Syntactic():
 
         self.parsing_table = parsing_table
 
-    def validate_sentence(self, sentence: str) -> Tuple[bool, str]:
+    def validate_sentence(self, sentence: list[str]) -> Tuple[bool, str]:
+        # variaveis de controle, para evidenciar casos de erro
         result, description = False, ''
         # inicia a pilha
         stack = ['$', self.grammar.initial_symbol]
-        # parse a sentença (itens vem espaçacos na string):
-        sentence = sentence.split()
+        # insere '$'no fim da sentença (lista de tokens da analise léxica):
         sentence.append('$')
         i = 0
         print('sentence: ', sentence, '\n')

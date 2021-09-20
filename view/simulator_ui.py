@@ -16,12 +16,12 @@ class SimulatorUI(QDialog):
         self.exec_lex_btn = QPushButton("Analisar Léxico")
         self.exec_syntax_btn = QPushButton("Analisar Sintático")
         self.parsing_table_btn = QPushButton("Exibir tabela de parsing")
-        self.parsing_table_ui = QWidget()
+        self.parsing_table_ui = QDialog()
         self.parsing_table = QTableWidget()
         self.reset_btn = QPushButton("Resetar simulação")
         self.close_btn = QPushButton("Encerrar")
-        self.size_ = size
         self.initUI(size)
+        self.init_parsing_table_UI(size)
 
     def initUI(self, size) -> None:
         self.setWindowTitle("Testar Analisador Léxico e Sintático [Preditivo LL1]")
@@ -156,8 +156,7 @@ class SimulatorUI(QDialog):
         self.close()
 
     def exec_syntactic_analysis(self) -> None:
-        text = self.scode_text.toPlainText()
-        self.control.exec_syntactic_analysis(text)
+        self.control.exec_syntactic_analysis()
 
     def exec_lexical_analysis(self) -> None:
         self.reset_simulation()
@@ -170,7 +169,7 @@ class SimulatorUI(QDialog):
         keywords = self.main_UI.keywords_text.toPlainText()
         self.control.reset_simulation(keywords)
 
-    def init_parsing_table(self, parsing_table_dict: dict, terminals: list) -> None:
+    def create_parsing_table(self, parsing_table_dict: dict, terminals: list) -> None:
         self.clear_parsing_table()
         terminals = (set(terminals))
         col = len(terminals)
@@ -190,21 +189,20 @@ class SimulatorUI(QDialog):
                     item = QTableWidgetItem(''.join(parsing_table_dict[nt][t]))
                     self.parsing_table.setItem(i, j, item)
         
-        layout = QVBoxLayout()
-        layout.addWidget(self.parsing_table)
-        self.parsing_table_ui.setLayout(layout)
-
     def clear_parsing_table(self) -> None:
         self.parsing_table.clearContents()        
         self.parsing_table.setRowCount(0)
+        self.parsing_table.setColumnCount(0)
 
     def show_parsing_table(self) -> None:
-        self.init_parsing_table_UI()
-        self.parsing_table_ui.show()
+        self.parsing_table_ui.exec()
 
-    def init_parsing_table_UI(self) -> None:
+    def init_parsing_table_UI(self, size) -> None:
+        layout = QVBoxLayout()
+        layout.addWidget(self.parsing_table)
+        self.parsing_table_ui.setLayout(layout)
         self.parsing_table_ui.setWindowTitle("Tabela de Parsing")
-        self.parsing_table_ui.resize(QSize(self.size_[0] + 250, self.size_[1]))
+        self.parsing_table_ui.resize(QSize(size[0] + 250, size[1]))
         self.center_parsing_table_window()
 
     def center_parsing_table_window(self) -> None:
