@@ -13,6 +13,7 @@ class AppControl():
         self.syn = Syntactic()
 
     def start_simulator(self, reg_defs: str, tokens: str, keywords: str, nonterminals: str, grammar: str) -> None:
+        self.simulator_ui.reset_simulation() # limpar simulaçoes anteriores
         reg_defs_list = reg_defs.splitlines()
         tokens_list = tokens.splitlines()
         keywords_list = self.parse_keywords(keywords.splitlines())
@@ -54,8 +55,8 @@ class AppControl():
 
         return keywords_list
 
-    # transforma a gramática de entrada em forma de 
-    # strings num dicionário, conforme modelagem adotada
+    # transforma as strings da gramática de entrada
+    # num dicionário, conforme a modelagem adotada
     # (ver construtor da classe Grammar) 
     def split_grammar(self, grammar_list: List[str]) -> dict:
         grammar = dict()
@@ -98,8 +99,8 @@ class AppControl():
         msg_dialog.setWindowTitle("Informação")
         if result:
             msg_dialog.setIcon(QMessageBox.Information)
-            msg_dialog.setText("Sucesso!")
-            msg_dialog.setInformativeText(description)
+            msg_dialog.setText(description)
+            msg_dialog.setInformativeText("As etapas da pilha de execução podem ser vistas na linha de comando.")
         else:
             msg_dialog.setIcon(QMessageBox.Warning)
             msg_dialog.setText("Ocorreu um erro:")

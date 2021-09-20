@@ -1,4 +1,5 @@
 ## tive que trocar aqui pra funcionar os imports
+from typing import Tuple
 from model.print_tree import print_tree
 import model.automaton as automaton
 import model.lexico as lexico
@@ -23,7 +24,6 @@ class Node:
 #        de um alfabeto proveniente das definições regulares(?)
 def is_operand(c: str, alphabet: set) -> bool:
     return c in alphabet or c in {'#', '&'}
-	# return c.isalnum() or c in {'#', '&'}
 
 def is_reg_def(s: str, reg_defs: dict) -> bool:
     return s in reg_defs
@@ -36,7 +36,8 @@ def is_unfolded_operand(c: str, reg_defs: dict) -> bool:
     return False
 
 def is_operator(c: str) -> bool:
-	return c in {'*', '|', '.', '?', '+'}
+	# return c in {'*', '|', '.', '?', '+'}
+	return c in {'**', '||', '..', '??', '++'}
 
 def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
     """
@@ -56,16 +57,18 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
     new_re = []
     while re != '':
         if re[0]!='{':
-            new_re.append(')')
-            par_count -= 1
-            new_re.append(re[0])
+            # new_re.append('))')
+            # par_count -= 1
+            new_re.append( re[0]+re[0] )
             # i += 1
             # print(re[0])
             # print('pass')
             re = re[1:] # cut off first element
         else:
-            new_re.append('(')
-            par_count += 1
+            if new_re and new_re[-1] == '))':
+                new_re.append('..')
+            new_re.append('((')
+            # par_count += 1
             start = 1
             end = re[start:].find('}') + 1
             # print(re[start:])
@@ -75,19 +78,21 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
 
             if is_reg_def(re[start:end], reg_defs):
                 for value in reg_defs[re[start:end]]:
-                    new_re.append(value+'|')
-                new_re[-1] = new_re[-1][0] # cut out last '|'
+                    new_re.extend([value, '||'])
+                new_re.pop() # cut out last '|'
             else:
                 print('erro, expressão mal formada')
+            new_re.append('))')
+            # par_count -= 1
             re = re[end+1:]
     while par_count > 0:
-        new_re.append(')')
+        new_re.append('))')
         par_count -= 1
-    # print(''.join(new_re))
     # regex
-    re = '(' + ''.join(new_re) + ')#.'
+    re = ['(('] + new_re + ['))', '#', '..']
+    # re = '(' + ''.join(new_re) + ')#.'
     # parsed regex 
-    pre = re[0]
+    pre = [re[0]]
 
     # ^ primeiro simbolo não é analisado
     # (supõe-se que a regex é valida)
@@ -103,18 +108,18 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
         #   ')(' -> ') . (' 
         #   'aaa' -> 'a . a . a'
         #   'a*b' -> 'a* . b'
-        if (is_operand(re[i], alphabet) or re[i] == '(') and (is_operand(pre[-1], alphabet) or pre[-1] in {'*', ')'} ):
-            pre += '.' + re[i]
+        if (is_operand(re[i], alphabet) or re[i] == '((') and (is_operand(pre[-1], alphabet) or pre[-1] in {'**', '))'} ):
+            pre.extend(['..', re[i]])
 
         # copiar diretamente (exceto para '?')
-        elif re[i] in {'(', ')'} or is_operator(re[i]) or is_operand(re[i], alphabet):
+        elif re[i] in {'((', '))'} or is_operator(re[i]) or is_operand(re[i], alphabet):
             
-            if re[i] not in {'?', '+'}:
-                pre += re[i]
+            if re[i] not in {'??', '++'}:
+                pre.append(re[i])
                 continue
 
-            # substituir operador '?' por '(_subexp_|&).(...)'
-            # ou '+' por (_subexp_).(_subexp_)*
+            # substituir operador '??' por '(_subexp_|&).(...)'
+            # ou '++' por (_subexp_).(_subexp_)*
             # obs: a inclusão dos parenteses é necessaria para
             #   garantir a formação da arvore de forma correta
             #   a partir do algoritmo utilizado para a arvore
@@ -122,18 +127,20 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
             # o primeiro caso é facil: se for um operando, 
             # basta adicionar um ( antes do mesmo.
             if is_operand(pre[-1], alphabet):
-                if re[i] == '?':
-                    pre = pre[:-1] + '(' + pre[-1] + '|&).'
-                elif re[i] == '+':
-                    pre += '.' + pre[-1] + '*'
+                if re[i] == '??':
+                    pre.extend( ['((', pre[-1], '||', '&', '))', '..'] )
+                elif re[i] == '++':
+                    pre.extend( ['..', pre[-1], '**'] )
             
             # segundo caso: quando o simbolo anterior
             # é um ), que é mais delicado por que deve-se
             # considerar tudo que tiver dentro dos ()'s
             else:
                 j = len(pre) - 1
-                # buffer para restaurar a regex
-                buf = ''
+                # buffer que ira coletar toda a subexpressão
+                # anterior ao operador, incluindo a abertura
+                # e fechamento dos (), se houverem
+                buf = []
                 # contador de parenteses
                 parenteses = 0
                 
@@ -141,16 +148,16 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
                 # de trás para frente, para poder identificar as aberturas
                 # e fechamentos dos parenteses na expressão
                 while j > -1:
-                    buf = pre[j] + buf
+                    buf = [pre[j]] + buf
 
                     # contagem de parenteses existentes
-                    if pre[j] == ')':
+                    if pre[j] == '))':
                         parenteses += 1
-                    elif pre[j] == '(':
+                    elif pre[j] == '((':
                         parenteses -= 1
                         # se fechar todos parenteses encontrados
                         # então foi encontrada a posição para abrir
-                        # o novo '('
+                        # o novo '(('
                         if parenteses == 0:
                             j = -1
                             break
@@ -158,17 +165,17 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
                     j -= 1
 
                     if not is_operand(pre[j], reg_defs) or parenteses:
-                        buf = pre[j] + buf
+                        buf = [pre[j]] + buf
 
                         # contagem de parenteses existentes
-                        if pre[j] == ')':
+                        if pre[j] == '))':
                             parenteses += 1
-                        elif pre[j] == '(':
+                        elif pre[j] == '((':
                             parenteses -= 1
 
                             # se fechar todos parenteses encontrados
                             # então foi encontrada a posição para abrir
-                            # o novo '('
+                            # o novo '(('
                             if parenteses == 0:
                                 j = -1
                                 break
@@ -179,34 +186,26 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
                     # abrir o parenteses, e não se encontrou
                     # nenhum ()'s no caminho
                     else:
-                        pre = pre[0 : j-1] + '(' + buf
+                        pre = pre[0 : j-1] + ['(('] + buf
                         break
 
-                # indica que foram encontrados parenteses teve que ser 
-                # e haviam outros parenteses no meio
+                # j = -1 indica que foram encontrados parenteses 
                 if j == -1:
 
                     # se nao pegou toda a expressao em 'buf',
                     # restaura a parte anterior ao que tiver em 'buf'
                     if len(pre) > len(buf):
-                        pre = pre[:(len(pre) - len(buf))] + '(' + buf
+                        pre = pre[:(len(pre) - len(buf))] + ['(('] + buf
                     else:
-                        pre = '(' + buf
+                        pre = ['(('] + buf
 
-                pre += '|&).'
-                # aqui termina o tratamento da substituição de '?'
-                # se nao pegou toda a expressao em 'buf',
-                # restaura a parte anterior ao que tiver em 'buf'
-                if len(pre) > len(buf):
-                    pre = pre[:(len(pre) - len(buf))] + '(' + buf
-                else:
-                    pre = '(' + buf
+                pre.extend( ['||', '&', '))'] )
+                # aqui termina o tratamento da substituição de '??'
 
-                if re[i] == '?':
-                    pre += '|&).'
-                else:
-                    pre = pre[1:] + '.' + buf + '*'
-                # aqui termina o tratamento da substituição de '?' ou '+'
+                # se '++' ainda concatena a parte da expressao em 'buf'
+                # aplicando a operação de fecho
+                if re[i] == '++':
+                    pre.extend( ['..'] + buf + ['**'] )
 
         # caso re[i] inválido. ignorar caractere.
         # exemplo: espaços em branco
@@ -220,7 +219,7 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
 Algoritmo adaptado de:
 https://www.geeksforgeeks.org/program-to-convert-infix-notation-to-expression-tree/?ref=rp
 """
-def build_ST(re: str, alphabet: set) -> Node:
+def build_ST(re: list, alphabet: set) -> Node:
     """
     Retorna a árvore sintática de uma dada expressão 
     regular parseada (por parse_regex()) na forma infixa.
@@ -234,13 +233,13 @@ def build_ST(re: str, alphabet: set) -> Node:
     # char stack
     cs = []
     # precedences
-    pcd = {')': 0, '|': 1, '.': 2, '*': 3}
+    pcd = {'))': 0, '||': 1, '..': 2, '**': 3}
 
     for i in range(len(re)):
 
 
-        # Push '(' in char stack
-        if re[i] == '(':
+        # Push '((' in char stack
+        if re[i] == '((':
             cs.append(re[i])
         
         # Push the operands in node stack
@@ -252,7 +251,7 @@ def build_ST(re: str, alphabet: set) -> Node:
         # same associativity appears
         elif pcd[re[i]] > 0:
 
-            while cs and cs[-1] != '(' and pcd[cs[-1]] >= pcd[re[i]]: 
+            while cs and cs[-1] != '((' and pcd[cs[-1]] >= pcd[re[i]]: 
 
                 # Get and remove the top element
                 # from the character stack
@@ -263,7 +262,7 @@ def build_ST(re: str, alphabet: set) -> Node:
                 # Update the tree
 
                 ## Treat unary operator case: single child (left)
-                if father.value == '*':
+                if father.value == '**':
                     father.right = None
                 else:
                     father.right = ns.pop()
@@ -275,13 +274,13 @@ def build_ST(re: str, alphabet: set) -> Node:
             # Push re[i] to char stack
             cs.append(re[i])
         
-        elif re[i] == ')':
+        elif re[i] == '))':
 
-            while cs and cs[-1] != '(':
+            while cs and cs[-1] != '((':
             
                 father = Node(cs.pop())
 
-                if father.value == '*':
+                if father.value == '**':
                     father.right = None
                 else:
                     father.right = ns.pop()
@@ -295,7 +294,7 @@ def build_ST(re: str, alphabet: set) -> Node:
     return father
 
 
-def specify_nodes(as_root: Node, alphabet: set) -> (Node, list):
+def specify_nodes(as_root: Node, alphabet: set) -> Tuple[Node, list]:
     '''
     gera valores nullable, firstpos, lastpos e followpos
     percorrendo a ST em pós ordem: filho esquerda, filho 
@@ -336,12 +335,12 @@ def specify_nodes(as_root: Node, alphabet: set) -> (Node, list):
                 cn = curr_node
                 r = cn.right
                 l = cn.left
-                if cn.value == '|':
+                if cn.value == '||':
                     cn.nullable = l.nullable or r.nullable
                     cn.first_pos = l.first_pos | r.first_pos
                     cn.last_pos = l.last_pos | r.last_pos
 
-                if cn.value == '*':
+                if cn.value == '**':
                     cn.nullable = True
                     cn.first_pos = l.first_pos
                     cn.last_pos = l.last_pos
@@ -349,7 +348,7 @@ def specify_nodes(as_root: Node, alphabet: set) -> (Node, list):
                     for j in cn.first_pos:
                         leaf_list[i].follow_pos.add(j)
                     
-                if cn.value == '.':
+                if cn.value == '..':
                     cn.nullable = l.nullable and r.nullable
                     if l.nullable:
                         cn.first_pos = l.first_pos | r.first_pos

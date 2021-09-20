@@ -182,15 +182,12 @@ def determinization(afnd):
     while marked != d_states:  # se houver estados nao marcados
         T = (d_states-marked).pop()  # pega um estado nao marcado
         marked.add(T)  # marca o estado
-        for a in afnd.alphabet:
+        for a in afnd.alphabet - {'&'}: # aqui estava criando AFND de novo
             u = epsilon_closure(movement(T,a))
             d_states.add(u)
-            d_trans[(T,a)] = {u} # coloquei estado dentro de conjunto, para funcionar o teste isAFND em run()
+            d_trans[(T,a)] = {u}
     
     # computa os novos estados finais
-    # for s in d_states:
-    #     if s & afnd.final_states:
-    #         d_final.add(s)
     for s in d_states:
         t = s & afnd.final_states.keys()
         if t:

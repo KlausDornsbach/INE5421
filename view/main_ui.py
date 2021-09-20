@@ -61,28 +61,6 @@ class MainUI(QWidget):
 
         return splitter
 
-    def load_regex_example(self) -> None:
-        ###################### TESTE ######################
-        self.reg_def_text.append(
-            'L : [b,c,e,f,v]\n' +
-            'M : [o,m]\n' +
-            'P : [;]'
-        )     
-        self.token_text.append(
-            'com : {L}{M}{M}\n' +
-            'b : {L}\n' +
-            '; : {P}'
-        )
-        self.keywords_text.append(
-            'com = com : "com"\n' +
-            'b = b : "b"\n' +
-            'c = b : "c"\n' +
-            'e = b : "e"\n' +
-            'f = b : "f"\n' +
-            'v = b : "v"'
-        )
-        ###################### TESTE ######################
-
     def create_grammar_layout(self) -> QWidget:
         nonterminals = self.create_text_area('Não Terminais', self.nonterminals_text)
         grammar = self.create_text_area('Gramática', self.grammar_text)
@@ -96,18 +74,6 @@ class MainUI(QWidget):
         splitter.addWidget(grammar)
 
         return splitter
-
-    def load_grammar_example(self) -> None:
-        ###################### TESTE ######################
-        nonterminals_ex = "{P}\n{K}\n{V}\n{F}\n{C}"
-        grammar_ex = ("{P} -> {K} {V} {C}\n"
-                      "{K} -> c {K} | &\n"
-                      "{V} -> v {V} | {F}\n"
-                      "{F} -> f {P} ; {F} | &\n"
-                      "{C} -> b {V} {C} e | com ; {C} | &\n")
-        self.nonterminals_text.setText(nonterminals_ex)
-        self.grammar_text.setText(grammar_ex)
-        ###################### TESTE ######################
 
     def create_text_area(self, title: str, text_widget: QWidget) -> QWidget:
         widget = QWidget()
@@ -124,3 +90,61 @@ class MainUI(QWidget):
         nonterminals = self.nonterminals_text.toPlainText()
         grammar = self.grammar_text.toPlainText()
         self.control.start_simulator(reg_defs, tokens, keywords, nonterminals, grammar)
+
+    def load_regex_example(self) -> None:
+        # ###################### TESTE ######################
+        # self.reg_def_text.append(
+        #     'L : [b,c,e,f,v]\n' +
+        #     'M : [o,m]\n' +
+        #     'P : [;]'
+        # )     
+        # self.token_text.append(
+        #     'com : {L}{M}{M}\n' +
+        #     'b : {L}\n' +
+        #     '; : {P}'
+        # )
+        # self.keywords_text.append(
+        #     'com = com : "com"\n' +
+        #     'b = b : "b"\n' +
+        #     'c = b : "c"\n' +
+        #     'e = b : "e"\n' +
+        #     'f = b : "f"\n' +
+        #     'v = b : "v"'
+        # )
+        # ###################### TESTE ######################
+        ###################### TESTE ######################
+        self.reg_def_text.append(
+            'D : [0-9]\n' +
+            'S : [+,*,(,)]'
+        )     
+        self.token_text.append(
+            'num : {D}+\n' +
+            'symbol : {S}'
+        )
+        self.keywords_text.append(
+            '+ = symbol : "+"\n' +
+            '* = symbol : "*"\n' +
+            '( = symbol : "("\n' +
+            ') = symbol : ")"'
+        )
+        ###################### TESTE ######################
+
+    def load_grammar_example(self) -> None:
+        ###################### TESTE ######################
+        # nonterminals_ex = "{P}\n{K}\n{V}\n{F}\n{C}"
+        # grammar_ex = ("{P} -> {K} {V} {C}\n"
+        #               "{K} -> c {K} | &\n"
+        #               "{V} -> v {V} | {F}\n"
+        #               "{F} -> f {P} ; {F} | &\n"
+        #               "{C} -> b {V} {C} e | com ; {C} | &\n")
+        ###################### TESTE ######################
+
+        ###################### TESTE ######################
+        nonterminals_ex = "{E}\n{T}\n{F}"
+        grammar_ex = ("{E} -> {E} + {T} | {T}\n"
+                      "{T} -> {T} * {F} | {F}\n"
+                      "{F} -> ( {E} ) | num")
+        ###################### TESTE ######################
+
+        self.nonterminals_text.setText(nonterminals_ex)
+        self.grammar_text.setText(grammar_ex)

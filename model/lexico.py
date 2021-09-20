@@ -205,9 +205,6 @@ class Lexico():
             st = syntax_tree.build_ST(regex, self.alphabet)
 
             (st, leaf_list) = syntax_tree.specify_nodes(st, self.alphabet)
-            # print(st)
-            # print(leaf_list)
-            # print(lex.alphabet)
             afd = automaton.build_automaton(st, leaf_list, id) # passa o identificador da exp regular
             
             # afd = automaton.build_automaton(st, leaf_list)

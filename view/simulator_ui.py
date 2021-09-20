@@ -38,7 +38,9 @@ class SimulatorUI(QDialog):
     def create_simulator_layout(self) -> QLayout:
         s_code = self.main_UI.create_text_area('Código Fonte', self.scode_text)
         ###################### TESTE ######################
-        self.scode_text.setText('c v f b e ;')
+        # self.scode_text.setText('c v f b e ;')
+        ###################### TESTE ######################
+        self.scode_text.setText('456 + (5 * 19)')
         ###################### TESTE ######################
 
         s_table = self.create_symbols_table_widget()
@@ -171,7 +173,7 @@ class SimulatorUI(QDialog):
 
     def create_parsing_table(self, parsing_table_dict: dict, terminals: list) -> None:
         self.clear_parsing_table()
-        terminals = (set(terminals))
+        terminals = sorted(set(terminals))
         col = len(terminals)
         if self.parsing_table.columnCount() < col:
             self.parsing_table.setColumnCount(col)
@@ -186,7 +188,7 @@ class SimulatorUI(QDialog):
         for i, nt in enumerate(parsing_table_dict):
             for j, t in enumerate(terminals):
                 if parsing_table_dict[nt].get(t):
-                    item = QTableWidgetItem(''.join(parsing_table_dict[nt][t]))
+                    item = QTableWidgetItem(' '.join(parsing_table_dict[nt][t]))
                     self.parsing_table.setItem(i, j, item)
         
     def clear_parsing_table(self) -> None:

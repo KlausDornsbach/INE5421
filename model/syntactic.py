@@ -72,6 +72,7 @@ class Syntactic():
         self.parsing_table = parsing_table
 
     def validate_sentence(self, sentence: List[str]) -> Tuple[bool, str]:
+        print('\n________________________start________________________\n')
         # variaveis de controle, para evidenciar casos de erro
         result, description = False, ''
         # inicia a pilha
@@ -93,7 +94,7 @@ class Syntactic():
                     result = True
                     break
                 elif stack[-1] != sentence_item:
-                    description = f'Não aceitou: (topo da pilha {stack[-1]} != {sentence[i]})'
+                    description = f"Não aceitou. Não terminal no topo da pilha diferente da sentença:\n'{stack[-1]}' != '{sentence[i]})'"
                     break
                 else:
                     i += 1
@@ -110,8 +111,8 @@ class Syntactic():
                     else:
                         # desempilha
                         if parsing_table_list[0] == '&':
-                            print('stack: ', stack)
                             stack.pop()
+                            print('stack: ', stack)
                         # add elementos de acordo com tabela em ordem decrescente
                         else:
                             stack.pop()
@@ -123,4 +124,5 @@ class Syntactic():
                     description = 'Não aceitou. Entrada da tabela de parsing inválida.'
                     break
         
+        print('\n________________________end________________________\n')
         return result, description

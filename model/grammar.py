@@ -104,6 +104,7 @@ class Grammar():
 
     # gera o conjunto first
     def generate_first(self):
+        self.first : Dict[str,Set[str]] = {x:set() for x in self.terminal | self.nonterminal}
         for x in self.terminal:
             self.first[x].add(x)
         while True:
@@ -122,6 +123,7 @@ class Grammar():
 
     # gera o conjunto follow
     def generate_follow(self):
+        self.follow : Dict[str,Set[str]] = {x:set() for x in self.nonterminal}
         self.follow[self.initial_symbol].add('$')
         while True:
             follow_copy = deepcopy(self.follow)
