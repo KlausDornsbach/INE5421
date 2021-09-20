@@ -71,7 +71,7 @@ class Syntactic():
 
         self.parsing_table = parsing_table
 
-    def validate_sentence(self, sentence: list[str]) -> Tuple[bool, str]:
+    def validate_sentence(self, sentence: List[str]) -> Tuple[bool, str]:
         # variaveis de controle, para evidenciar casos de erro
         result, description = False, ''
         # inicia a pilha
