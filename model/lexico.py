@@ -188,7 +188,7 @@ class Lexico():
     :param verbose: printar ou nao as informacoes ao longo do processo
     :return automato_completo: Automato pronto para ler entradas de texto
     '''
-    def make(self, reg_defs: list, raw_tokens: list, verbose: bool=True):
+    def make(self, reg_defs: list, raw_tokens: list, verbose: bool=False):
         # lex = Lexico(reg_defs)
         self.create_regdefs_alphabet(reg_defs)
         tokens = self.identify_tokens(raw_tokens)

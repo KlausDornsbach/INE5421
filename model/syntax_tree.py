@@ -83,7 +83,7 @@ def parse_regex(re: str, reg_defs: dict, alphabet: set) -> str:
     while par_count > 0:
         new_re.append(')')
         par_count -= 1
-    print(''.join(new_re))
+    # print(''.join(new_re))
     # regex
     re = '(' + ''.join(new_re) + ')#.'
     # parsed regex 
@@ -267,7 +267,6 @@ def build_ST(re: str, alphabet: set) -> Node:
                     father.right = None
                 else:
                     father.right = ns.pop()
-                print(father.value)
                 father.left = ns.pop()
 
                 # Push the node to the node stack

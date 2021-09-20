@@ -16,7 +16,8 @@ class Grammar():
     # possível fatorar (entrar em loop)
     def left_factoring(self) -> str:
         threshold = 10 * len(self.nonterminal) # limite arbitrario para interromper em caso de loop
-        ordering = tuple(self.nonterminal)
+        ordering = tuple([nt for nt in self.productions.keys()])
+        # ordering = tuple(self.nonterminal)
         while threshold:
             threshold -= 1
             productions_copy = deepcopy(self.productions)
@@ -75,7 +76,8 @@ class Grammar():
 
     # remove recursao a esquerda
     def remove_left_recursion(self):
-        ordering = tuple(self.nonterminal)
+        ordering = tuple([nt for nt in self.productions.keys()])
+        # ordering = tuple(self.nonterminal)
         while True:
             productions_copy = deepcopy(self.productions)
             for i,n in enumerate(ordering):
