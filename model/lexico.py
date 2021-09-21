@@ -188,7 +188,7 @@ class Lexico():
     :param verbose: printar ou nao as informacoes ao longo do processo
     :return automato_completo: Automato pronto para ler entradas de texto
     '''
-    def make(self, reg_defs: list, raw_tokens: list, verbose: bool=True):
+    def make(self, reg_defs: list, raw_tokens: list, verbose: bool=False):
         # lex = Lexico(reg_defs)
         self.create_regdefs_alphabet(reg_defs)
         tokens = self.identify_tokens(raw_tokens)
@@ -205,9 +205,6 @@ class Lexico():
             st = syntax_tree.build_ST(regex, self.alphabet)
 
             (st, leaf_list) = syntax_tree.specify_nodes(st, self.alphabet)
-            # print(st)
-            # print(leaf_list)
-            # print(lex.alphabet)
             afd = automaton.build_automaton(st, leaf_list, id) # passa o identificador da exp regular
             
             # afd = automaton.build_automaton(st, leaf_list)

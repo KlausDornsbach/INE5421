@@ -13,13 +13,18 @@ class SimulatorUI(QDialog):
         self.scode_text = QTextEdit()
         self.symbols_table = QTableWidget()
         self.token_list_table = QTableWidget()
-        self.execute_btn = QPushButton("Analisar Léxico")
+        self.exec_lex_btn = QPushButton("Analisar Léxico")
+        self.exec_syntax_btn = QPushButton("Analisar Sintático")
+        self.parsing_table_btn = QPushButton("Exibir tabela de parsing")
+        self.parsing_table_ui = QDialog()
+        self.parsing_table = QTableWidget()
         self.reset_btn = QPushButton("Resetar simulação")
         self.close_btn = QPushButton("Encerrar")
         self.initUI(size)
+        self.init_parsing_table_UI(size)
 
     def initUI(self, size) -> None:
-        self.setWindowTitle("Testar Analisador Léxico")
+        self.setWindowTitle("Testar Analisador Léxico e Sintático [Preditivo LL1]")
         self.resize(QSize(size[0] + 250, size[1]))
         self.center_window()
         self.create_simulator_layout()
@@ -33,7 +38,9 @@ class SimulatorUI(QDialog):
     def create_simulator_layout(self) -> QLayout:
         s_code = self.main_UI.create_text_area('Código Fonte', self.scode_text)
         ###################### TESTE ######################
-        self.scode_text.setText('abb a bbb')
+        # self.scode_text.setText('c v f b e ;')
+        ###################### TESTE ######################
+        self.scode_text.setText('456 + (5 * 19)')
         ###################### TESTE ######################
 
         s_table = self.create_symbols_table_widget()
@@ -55,17 +62,25 @@ class SimulatorUI(QDialog):
         self.setLayout(layout)
 
     def create_buttons_layout(self) -> QWidget:
-        widget = QWidget()
-        layout = QHBoxLayout()
-
-        self.execute_btn.clicked.connect(self.exec_lexical_analysis)
+        self.exec_lex_btn.clicked.connect(self.exec_lexical_analysis)
         self.reset_btn.clicked.connect(self.reset_simulation)
         self.close_btn.clicked.connect(self.close_simulator)
+        lex_layout = QHBoxLayout()
+        lex_layout.addWidget(self.exec_lex_btn)
+        lex_layout.addWidget(self.reset_btn)
+        lex_layout.addWidget(self.close_btn)
 
-        layout.addWidget(self.execute_btn)
-        layout.addWidget(self.reset_btn)
-        layout.addWidget(self.close_btn)
-        widget.setLayout(layout)
+        self.exec_syntax_btn.clicked.connect(self.exec_syntactic_analysis)
+        self.parsing_table_btn.clicked.connect(self.show_parsing_table)
+        syn_layout = QHBoxLayout()
+        syn_layout.addWidget(self.exec_syntax_btn)
+        syn_layout.addWidget(self.parsing_table_btn)
+
+        widget = QWidget()
+        btns_layout = QVBoxLayout()
+        btns_layout.addLayout(lex_layout)
+        btns_layout.addLayout(syn_layout)
+        widget.setLayout(btns_layout)
         return widget
 
     def create_symbols_table_widget(self) -> QWidget:
@@ -85,7 +100,6 @@ class SimulatorUI(QDialog):
         return widget
 
     ## recebe uma lista de entradas para a tabela de simbolos
-    # sugestão: entries = Tuple/List (ID/palavra_reservada, lexema)
     def insert_symbols_table(self, entries) -> None:
         self.clear_symbols_table()
         size = len(entries)
@@ -121,8 +135,6 @@ class SimulatorUI(QDialog):
         return widget
 
     ## recebe uma lista de entradas para a lista de tokens
-    # sugestão: entries = Tuple/List (ID, lexema, posição)
-    # TODO ATUALIZAR PARA ADAPTAR A AENTRADA
     def insert_token_list(self, entries) -> None:
         self.clear_token_list()
         size = len(entries)
@@ -140,10 +152,16 @@ class SimulatorUI(QDialog):
     def close_simulator(self) -> None:
         self.clear_symbols_table()
         self.clear_token_list()
+        self.clear_parsing_table()
+        self.parsing_table_ui.close()
         self.control.end_simulation()
         self.close()
 
+    def exec_syntactic_analysis(self) -> None:
+        self.control.exec_syntactic_analysis()
+
     def exec_lexical_analysis(self) -> None:
+        self.reset_simulation()
         text = self.scode_text.toPlainText()
         self.control.exec_lexical_analysis(text)
 
@@ -152,3 +170,45 @@ class SimulatorUI(QDialog):
         self.clear_token_list()
         keywords = self.main_UI.keywords_text.toPlainText()
         self.control.reset_simulation(keywords)
+
+    def create_parsing_table(self, parsing_table_dict: dict, terminals: list) -> None:
+        self.clear_parsing_table()
+        terminals = sorted(set(terminals))
+        col = len(terminals)
+        if self.parsing_table.columnCount() < col:
+            self.parsing_table.setColumnCount(col)
+
+        row = len(parsing_table_dict)
+        if self.parsing_table.rowCount() < row:
+            self.parsing_table.setRowCount(row)
+
+        self.parsing_table.setHorizontalHeaderLabels(terminals)
+        self.parsing_table.setVerticalHeaderLabels(parsing_table_dict.keys())
+
+        for i, nt in enumerate(parsing_table_dict):
+            for j, t in enumerate(terminals):
+                if parsing_table_dict[nt].get(t):
+                    item = QTableWidgetItem(' '.join(parsing_table_dict[nt][t]))
+                    self.parsing_table.setItem(i, j, item)
+        
+    def clear_parsing_table(self) -> None:
+        self.parsing_table.clearContents()        
+        self.parsing_table.setRowCount(0)
+        self.parsing_table.setColumnCount(0)
+
+    def show_parsing_table(self) -> None:
+        self.parsing_table_ui.exec()
+
+    def init_parsing_table_UI(self, size) -> None:
+        layout = QVBoxLayout()
+        layout.addWidget(self.parsing_table)
+        self.parsing_table_ui.setLayout(layout)
+        self.parsing_table_ui.setWindowTitle("Tabela de Parsing")
+        self.parsing_table_ui.resize(QSize(size[0] + 250, size[1]))
+        self.center_parsing_table_window()
+
+    def center_parsing_table_window(self) -> None:
+        fg = self.parsing_table_ui.frameGeometry()
+        center = QDesktopWidget().availableGeometry().center()
+        fg.moveCenter(center)
+        self.parsing_table_ui.move(fg.topLeft()) 

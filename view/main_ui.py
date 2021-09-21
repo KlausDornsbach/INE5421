@@ -14,13 +14,15 @@ class MainUI(QWidget):
         self.reg_def_text = QTextEdit()
         self.token_text = QTextEdit()
         self.keywords_text = QTextEdit()
+        self.nonterminals_text = QTextEdit()
+        self.grammar_text = QTextEdit()
         self.simulation_btn = QPushButton("Simulador")
         self.initUI(size)
 
     def initUI(self, size) -> None:
         self.resize(QSize(size[0], size[1]))
         self.center_window()
-        self.setWindowTitle("Analisador Léxico")
+        self.setWindowTitle("Analisador Léxico e Sintático (Preditivo LL1)")
         self.create_main_layout()
         self.show()
 
@@ -33,38 +35,45 @@ class MainUI(QWidget):
     def create_main_layout(self) -> QLayout:
         layout = QVBoxLayout()
 
+        splitter = QSplitter(Qt.Vertical)
+        splitter.setStretchFactor(1, 1)
+        splitter.addWidget(self.create_regex_layout())
+        splitter.addWidget(self.create_grammar_layout())
+        layout.addWidget(splitter)
+        
+        self.simulation_btn.clicked.connect(self.start_simulator)
+        layout.addWidget(self.simulation_btn, Qt.AlignCenter)
+        self.setLayout(layout)
+
+    def create_regex_layout(self) -> QWidget:
         reg_def = self.create_text_area('Definições Regulares', self.reg_def_text)
         tokens = self.create_text_area('Tokens', self.token_text)
-        keywords = self.create_text_area('Palavras Reservadas (Tokens especiais)', self.keywords_text)
+        keywords = self.create_text_area('Palavras Reservadas', self.keywords_text)
         
-        ###################### TESTE ######################
-        # mesmo caso de teste que está 
-        # sendo feito em lexico.py 
-        # (simula os exemplos como um texto unico)
-        reg_def_ex = 'a : [a]\nb : [b]'
-        tokens_ex = 'X : {a}\nY : {a}{b}{b}\nZ :  {a}*{b}+'
-        keyword_ex = 'bbb = Z : "bbb"\nabb = Y : "abb"'
-        self.reg_def_text.setText(reg_def_ex)
-        self.token_text.setText(tokens_ex)
-        self.keywords_text.setText(keyword_ex)
-        ###################### TESTE ######################
+        self.load_regex_example()
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setStretchFactor(1, 1)
+        splitter.setSizes([300, 300, 300])
+        splitter.addWidget(reg_def)
+        splitter.addWidget(tokens)
+        splitter.addWidget(keywords)
+
+        return splitter
+
+    def create_grammar_layout(self) -> QWidget:
+        nonterminals = self.create_text_area('Não Terminais', self.nonterminals_text)
+        grammar = self.create_text_area('Gramática', self.grammar_text)
+        
+        self.load_grammar_example()
 
         splitter = QSplitter(Qt.Horizontal)
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([300, 300])
-        ss = QSplitter(Qt.Vertical)
-        ss.addWidget(reg_def)
-        ss.addWidget(tokens)
-        splitter.addWidget(ss)
-        splitter.addWidget(keywords)
-        
-        hbox = QHBoxLayout()
-        hbox.addWidget(splitter)
-        layout.addLayout(hbox)
+        splitter.addWidget(nonterminals)
+        splitter.addWidget(grammar)
 
-        self.simulation_btn.clicked.connect(self.start_simulator)
-        layout.addWidget(self.simulation_btn, Qt.AlignCenter)
-        self.setLayout(layout)
+        return splitter
 
     def create_text_area(self, title: str, text_widget: QWidget) -> QWidget:
         widget = QWidget()
@@ -78,5 +87,64 @@ class MainUI(QWidget):
         reg_defs = self.reg_def_text.toPlainText()
         tokens = self.token_text.toPlainText()
         keywords = self.keywords_text.toPlainText()
-        self.control.start_simulator(reg_defs, tokens, keywords)
-        self.simulator_ui.exec()
+        nonterminals = self.nonterminals_text.toPlainText()
+        grammar = self.grammar_text.toPlainText()
+        self.control.start_simulator(reg_defs, tokens, keywords, nonterminals, grammar)
+
+    def load_regex_example(self) -> None:
+        # ###################### TESTE ######################
+        # self.reg_def_text.append(
+        #     'L : [b,c,e,f,v]\n' +
+        #     'M : [o,m]\n' +
+        #     'P : [;]'
+        # )     
+        # self.token_text.append(
+        #     'com : {L}{M}{M}\n' +
+        #     'b : {L}\n' +
+        #     '; : {P}'
+        # )
+        # self.keywords_text.append(
+        #     'com = com : "com"\n' +
+        #     'b = b : "b"\n' +
+        #     'c = b : "c"\n' +
+        #     'e = b : "e"\n' +
+        #     'f = b : "f"\n' +
+        #     'v = b : "v"'
+        # )
+        # ###################### TESTE ######################
+        ###################### TESTE ######################
+        self.reg_def_text.append(
+            'D : [0-9]\n' +
+            'S : [+,*,(,)]'
+        )     
+        self.token_text.append(
+            'num : {D}+\n' +
+            'symbol : {S}'
+        )
+        self.keywords_text.append(
+            '+ = symbol : "+"\n' +
+            '* = symbol : "*"\n' +
+            '( = symbol : "("\n' +
+            ') = symbol : ")"'
+        )
+        ###################### TESTE ######################
+
+    def load_grammar_example(self) -> None:
+        ###################### TESTE ######################
+        # nonterminals_ex = "{P}\n{K}\n{V}\n{F}\n{C}"
+        # grammar_ex = ("{P} -> {K} {V} {C}\n"
+        #               "{K} -> c {K} | &\n"
+        #               "{V} -> v {V} | {F}\n"
+        #               "{F} -> f {P} ; {F} | &\n"
+        #               "{C} -> b {V} {C} e | com ; {C} | &\n")
+        ###################### TESTE ######################
+
+        ###################### TESTE ######################
+        nonterminals_ex = "{E}\n{T}\n{F}"
+        grammar_ex = ("{E} -> {E} + {T} | {T}\n"
+                      "{T} -> {T} * {F} | {F}\n"
+                      "{F} -> ( {E} ) | num")
+        ###################### TESTE ######################
+
+        self.nonterminals_text.setText(nonterminals_ex)
+        self.grammar_text.setText(grammar_ex)
